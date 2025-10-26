@@ -1,0 +1,35 @@
+ID,Title,Description,Phase,Week,AssigneeRole,Status,Labels,Dependencies,DueDate,Priority
+T-001,Mono-repo scaffolding,"Create repo structure for apps (teacher/student), services, infra, docs. Initialize package managers and shared tooling.",PoC,W1,Mobile Lead,Planned,"repo,tooling,ci",,,Medium
+T-002,CI/CD & build signing,"Set up lint/test/build pipelines, code signing stubs, PR checks.",PoC,W1,Backend Engineer,Planned,"ci,security",T-001,,Medium
+T-003,Dev infra provisioning,"Provision Postgres, object storage, Redis. Add local docker-compose.",PoC,W1,Backend Engineer,Planned,"infra,db",T-001,,Medium
+T-004,Auth (OIDC) + roles/tenants,"Implement OIDC auth, role-based access, tenant scoping for schools.",PoC,W1,Backend Engineer,Planned,"auth,rbac",T-003,,Medium
+T-005,OneRoster sample import,"Ingest OneRoster CSV, map to Student/Class/Enrollment entities.",PoC,W1,Backend Engineer,Planned,"interop,roster",T-003,,Medium
+T-006,Gather references & SDKs,"Collect docs/SDKs: MediaPipe, ONNX/TFLite, OpenCV, CoreLocation, FusedLocation, OneRoster. Archive in /docs/refs.",PoC,W1,PM/Founder,Planned,"refs,docs",,,Medium
+T-101,Teacher Today View skeleton,"Agenda, timers, flags, tasks; offline cache shell; accessibility baseline.",PoC,W2,Mobile Lead,Planned,"ui,offline",T-001,,Medium
+CV-101,CV enrollment flow,Capture 3–5 poses per student; encrypt local templates; consent audit log.,PoC,W2,CV/Edge AI Engineer,Planned,"cv,privacy",T-004;T-005,,Medium
+CV-102,On-device detect→embed→match,"Implement face detection, embeddings, temporal smoothing, match API (local).",PoC,W2,CV/Edge AI Engineer,Planned,"cv,inference",CV-101,,Medium
+CV-201,Live classroom attendance (CV-only),Pan-scan room; multi-face tracking; confidence + temporal consistency; confirm UI.,PoC,W3,CV/Edge AI Engineer,Planned,"cv,attendance",CV-102;T-101,,Medium
+LOC-201,GPS geofence setup,Define campus/pickup loop polygons; On/Off Campus state transitions with debounce.,PoC,W3,Mobile Lead,Planned,"gps,location",T-101,,Medium
+T-102,Attendance reconciliation UI,"Late/sick notes, manual overrides with audit trail.",PoC,W3,Mobile Lead,Planned,"ui,attendance",CV-201,,Medium
+T-201,Rotations panel,Suggested groups; Start; timers; accommodation conflict banner.,PoC,W4,Mobile Lead,Planned,"ui,rotations",T-101,,Medium
+S-201,Student destination screen,Countdown + arrival tap; offline cache; simple achievements.,PoC,W4,Mobile Lead,Planned,"ui,student",T-201,,Medium
+CV-202,CV checkpoints (door/line),Visual marker recognition for door/line/circle transitions; log events.,PoC,W4,CV/Edge AI Engineer,Planned,"cv,checkpoints",CV-201,,Medium
+GAM-201,Achievement pings,Timely arrival badges; teacher-configurable nudges.,PoC,W4,Mobile Lead,Planned,gamification,S-201,,Medium
+T-301,Evidence capture,Photo + voice note capture with on-device redact preview; upload pipeline.,PoC,W5,Mobile Lead,Planned,"media,ux",T-101,,Medium
+SV-301,Media pipeline + retention,Store redacted derivative; ephemeral retention unless parent saves; audit.,PoC,W5,Backend Engineer,Planned,"media,privacy",T-003,,Medium
+IN-301,Rules engine v1 + explain-why,"YAML-driven prompts (participation, handwriting); UI panel for why.",PoC,W5,Data/ML Engineer,Planned,"rules,explainable",T-301;SV-301,,Medium
+T-302,Suggestion accept/retag,Accept or retag in ≤2 taps; log acceptance/overrides.,PoC,W5,Mobile Lead,Planned,"ui,insights",IN-301,,Medium
+T-401,Daily Debriefer,"Wins/issues, milestone confirm, tomorrow materials; send parent digest items.",PoC,W6,Mobile Lead,Planned,"ui,debrief",T-301;IN-301,,Medium
+OFF-101,Offline soak & conflict resolution,30-min offline test; sync queues; last-write-wins with prompts.,PoC,W6,Backend Engineer,Planned,"offline,sync",T-201;S-201;T-301,,Medium
+SEC-101,Threat model & privacy review,No raw face uploads; encrypted templates; audit trails; RBAC/ABAC checks.,PoC,W6,PM/Founder,Planned,"security,privacy",SV-301,,Medium
+IN-401,Expand rule sets,Add 10 high-confidence strategies for reading/math/behavior aligned to standards.,MVP,W7-9,Data/ML Engineer,Planned,"rules,education",IN-301,,Medium
+T-501,Point-of-use accommodations,Surface SIS accommodations in context (read-only).,MVP,W7-9,Backend Engineer,Planned,"iep,context",T-005,,Medium
+T-502,Small-group checklists/rubrics,Quick mini-rubrics; export to evidence.,MVP,W7-9,Mobile Lead,Planned,"ui,assessment",T-201,,Medium
+CUST-101,Custody lineup & exit scans (CV),Lineup CV verification at door; return scans post-recess.,MVP,W10-12,CV/Edge AI Engineer,Planned,"cv,custody",CV-202,,Medium
+CUST-102,GPS pickup closure,Close custody when parent device enters pickup loop; confirm on greeter/teacher tablet.,MVP,W10-12,Mobile Lead,Planned,"gps,custody",LOC-201,,Medium
+S-301,Student practice modules,Finger trace → stylus → keyboard progression; simple telemetry.,MVP,W10-12,Mobile Lead,Planned,"student,practice",S-201,,Medium
+COM-101,Bright Ideas (curated),List from lesson repo; favorite/insert into unit; supply auto-gen.,MVP,W13-15,Backend Engineer,Planned,"community,content",T-201,,Medium
+LES-101,Lesson repo v1,Versioning + remix provenance minimal API.,MVP,W13-15,Backend Engineer,Planned,"content,api",,,Medium
+NUT-101,Nutrition v1 (parent photo),Parse breakfast/dinner photos; allergens; basic nutrition card.,MVP,W16-18,Data/ML Engineer,Planned,"cv,nutrition",,,Medium
+PRIV-201,Ephemeral media deletion job,Daily purge per retention policy; audit; exceptions when parent saved.,MVP,W16-18,Backend Engineer,Planned,"privacy,retention",SV-301,,Medium
+QA-201,"Accessibility, i18n, performance",Contrast/fonts/labels; language packs; perf passes on low-end devices.,MVP,W16-18,Design/Research,Planned,"a11y,perf,i18n",,,Medium
