@@ -1,0 +1,13 @@
+feat(backend): Complete Week 1 PoC foundation with full API suite
+
+Deliver comprehensive backend infrastructure for Co-Teacher PoC including:
+- 7 complete API services (Auth, Attendance, Rotations, Evidence, Insights, Messaging, Consent/Audit)
+- Database schema with 9 tables
+- Docker Compose for PostgreSQL, Redis, and gateway services
+- JWT authentication with token refresh
+- OneRoster CSV importer with sample data
+- Privacy-first design with consent tracking and audit logs
+- Face redaction with Gaussian blur for evidence
+- Rule-based insights with explain-why messaging
+- Comprehensive documentation suite
+
