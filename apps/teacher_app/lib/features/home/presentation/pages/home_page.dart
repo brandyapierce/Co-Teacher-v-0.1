@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +22,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My AI CoTeacher'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.face),
+            tooltip: 'Face Enrollment',
+            onPressed: () => context.push('/enrollment'),
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -63,7 +71,7 @@ class AttendanceTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.people, size: 64, color: Colors.grey),
+          const Icon(Icons.people, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text('Attendance', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
@@ -83,7 +91,7 @@ class RotationsTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.rotate_right, size: 64, color: Colors.grey),
+          const Icon(Icons.rotate_right, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text('Rotations', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
@@ -103,7 +111,7 @@ class EvidenceTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.camera_alt, size: 64, color: Colors.grey),
+          const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
           const SizedBox(height: 16),
           Text('Evidence', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),

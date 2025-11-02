@@ -22,12 +22,13 @@
 - [ ] Confidence scoring with configurable thresholds
 
 ### Mobile CV Service
-- [ ] MediaPipe face detection integration
+- [ ] MediaPipe TFLite face detection integration
   - Files: `apps/teacher_app/lib/shared/data/services/cv_service.dart`
-- [ ] ONNX Runtime Mobile for embeddings
+- [ ] TFLite face embeddings (MediaPipe FaceMesh)
 - [ ] Local encrypted face template storage with Hive
 - [ ] Camera pipeline with preview and capture
 - [ ] Face enrollment UI (3-5 poses per student)
+- **Architecture**: Pure TFLite (no ONNX) ✅
 
 ## Week 3: Attendance System
 
@@ -52,8 +53,10 @@
    - File: `apps/teacher_app/lib/core/di/injection_container.dart`
 
 ### CV Models
-- [ ] Download MediaPipe face detection model
-- [ ] Download ONNX Runtime Mobile embedding model
-- [ ] Add to Flutter assets
-- [ ] Update pubspec.yaml
+- [x] Download MediaPipe face detection model ✅ (face_detection_short_range.tflite)
+- [x] Download MediaPipe face landmarker ✅ (face_landmarker.task)
+- [x] Add to Flutter assets ✅ (assets/models/)
+- [x] Update pubspec.yaml ✅
+- [x] TFLite package integrated ✅ (tflite_flutter: ^0.10.4)
+- **Status**: ✅ READY FOR INTEGRATION (Pure TFLite architecture)
 

@@ -5,6 +5,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_config.dart';
 import '../../shared/data/services/cv_service.dart';
+// TFLite version - use when TFLite is working on Windows
+// import '../../shared/data/services/cv_service_enhanced.dart';
+import '../../shared/data/services/cv_service_mock.dart';
+import '../../shared/data/services/camera_service.dart';
 import '../../shared/data/services/location_service.dart';
 import '../../shared/data/services/offline_queue_service.dart';
 
@@ -35,6 +39,8 @@ Future<void> initializeDependencies() async {
 
   // Services
   getIt.registerLazySingleton<CVService>(() => CVService());
+  getIt.registerLazySingleton<CVServiceMock>(() => CVServiceMock());
+  getIt.registerLazySingleton<CameraService>(() => CameraService());
   getIt.registerLazySingleton<LocationService>(() => LocationService());
   getIt.registerLazySingleton<OfflineQueueService>(() => OfflineQueueService());
 }
