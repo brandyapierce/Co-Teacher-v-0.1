@@ -23,5 +23,10 @@ def get_db():
 
 async def init_db():
     # Create tables
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Database initialization error: {e}")
+        raise
 
