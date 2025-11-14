@@ -6,11 +6,14 @@ import '../../data/models/attendance_record.dart';
 /// 
 /// This is a "presentational widget" - it only displays data, doesn't manage state.
 /// It receives data through parameters and calls callbacks when user interacts.
+/// 
+/// POLISH: Added smooth animations and better visual feedback
 class AttendanceCard extends StatelessWidget {
   final AttendanceRecord record;
   final VoidCallback? onTap; // Called when card is tapped
   final VoidCallback? onEdit; // Called when edit button is tapped
   final VoidCallback? onDelete; // Called when delete button is tapped
+  final int? index; // For staggered animations
 
   const AttendanceCard({
     super.key,
@@ -18,19 +21,45 @@ class AttendanceCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.index,
   });
 
   @override
   Widget build(BuildContext context) {
+    // POLISH: Add smooth slide-in animation for new cards
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 300 + (index ?? 0) * 50), // Staggered
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)), // Slide up
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+      child: _buildCard(context),
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
     // Card provides elevation (shadow) and rounded corners
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      child: InkWell(
-        // InkWell adds tap ripple effect
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
+    // POLISH: Add semantic label for accessibility
+    return Semantics(
+      label: 'Attendance record for ${record.studentName}, marked ${record.status} at ${_formatTimestamp(record.timestamp)}',
+      button: onTap != null,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 2,
+        child: InkWell(
+          // InkWell adds tap ripple effect with custom splash color
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          splashColor: _getStatusColor().withOpacity(0.1), // POLISH: Status color splash
+          highlightColor: _getStatusColor().withOpacity(0.05),
+          child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,13 +68,17 @@ class AttendanceCard extends StatelessWidget {
               Row(
                 children: [
                   // Student avatar (circle with initials)
-                  CircleAvatar(
-                    backgroundColor: _getStatusColor().withOpacity(0.2),
-                    child: Text(
-                      _getInitials(record.studentName),
-                      style: TextStyle(
-                        color: _getStatusColor(),
-                        fontWeight: FontWeight.bold,
+                  // POLISH: Add semantic label for avatar
+                  Semantics(
+                    label: '${record.studentName} avatar',
+                    child: CircleAvatar(
+                      backgroundColor: _getStatusColor().withOpacity(0.2),
+                      child: Text(
+                        _getInitials(record.studentName),
+                        style: TextStyle(
+                          color: _getStatusColor(),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -180,6 +213,7 @@ class AttendanceCard extends StatelessWidget {
                 ),
               ],
             ],
+          ),
           ),
         ),
       ),

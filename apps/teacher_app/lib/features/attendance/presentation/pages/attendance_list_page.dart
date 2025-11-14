@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/attendance_list_cubit.dart';
 import '../providers/attendance_list_state.dart';
 import '../widgets/attendance_card.dart';
@@ -46,9 +47,10 @@ class _AttendanceListView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Attendance History'),
         actions: [
-          // Filter button
+          // Filter button with tooltip
           IconButton(
             icon: const Icon(Icons.filter_list),
+            tooltip: 'Filter attendance records', // POLISH: Helpful tooltip
             onPressed: () => _showFilterBottomSheet(context),
           ),
         ],
@@ -67,11 +69,12 @@ class _AttendanceListView extends StatelessWidget {
           ),
         ],
       ),
-      // Floating action button to refresh
+      // Floating action button to refresh with tooltip
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.read<AttendanceListCubit>().refresh();
         },
+        tooltip: 'Refresh attendance records', // POLISH: Helpful tooltip
         child: const Icon(Icons.refresh),
       ),
     );
@@ -205,33 +208,84 @@ class _AttendanceListView extends StatelessWidget {
         // Get filtered records (computed property in state)
         final records = state.filteredRecords;
 
-        // Show empty state
+        // Show empty state with better design
         if (records.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.history, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  state.hasActiveFilters
-                      ? 'No records match your filters'
-                      : 'No attendance records yet',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                if (state.hasActiveFilters) ...[
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      context.read<AttendanceListCubit>().clearFilters();
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // POLISH: Animated icon for empty state
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Icon(
+                          state.hasActiveFilters ? Icons.search_off : Icons.history,
+                          size: 80,
+                          color: Colors.blue[200],
+                        ),
+                      );
                     },
-                    child: const Text('Clear filters'),
                   ),
+                  const SizedBox(height: 24),
+                  Text(
+                    state.hasActiveFilters
+                        ? 'No records match your filters'
+                        : 'No attendance records yet',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    state.hasActiveFilters
+                        ? 'Try adjusting your filters or search terms'
+                        : 'Start taking attendance to see records here',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  if (state.hasActiveFilters)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        context.read<AttendanceListCubit>().clearFilters();
+                      },
+                      icon: const Icon(Icons.clear_all),
+                      label: const Text('Clear Filters'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        context.push('/attendance/scan');
+                      },
+                      icon: const Icon(Icons.camera_alt),
+                      label: const Text('Start Attendance Scan'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
                 ],
-              ],
+              ),
             ),
           );
         }
@@ -267,9 +321,10 @@ class _AttendanceListView extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final record = records[index];
                     
-                    // Use our custom AttendanceCard widget
+                    // Use our custom AttendanceCard widget with animation
                     return AttendanceCard(
                       record: record,
+                      index: index, // POLISH: For staggered animations
                       onTap: () {
                         // TODO: Navigate to detail page
                         // For now, just show a message
@@ -431,8 +486,20 @@ class _AttendanceListView extends StatelessWidget {
                     notes: notesController.text,
                   );
               Navigator.pop(dialogContext);
+              // POLISH: Better success feedback with icon and color
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Record updated')),
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Text('${record.studentName} updated successfully'),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
               );
             },
             child: const Text('Save'),
@@ -460,8 +527,27 @@ class _AttendanceListView extends StatelessWidget {
             onPressed: () {
               context.read<AttendanceListCubit>().deleteRecord(record.id);
               Navigator.pop(dialogContext);
+              // POLISH: Better delete feedback
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Record deleted')),
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.delete_outline, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Text('${record.studentName} removed from records'),
+                    ],
+                  ),
+                  backgroundColor: Colors.orange,
+                  behavior: SnackBarBehavior.floating,
+                  action: SnackBarAction(
+                    label: 'UNDO',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      // TODO: Implement undo functionality
+                    },
+                  ),
+                  duration: const Duration(seconds: 3),
+                ),
               );
             },
             style: ElevatedButton.styleFrom(
