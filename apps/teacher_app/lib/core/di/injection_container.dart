@@ -4,6 +4,9 @@ import 'package:hive/hive.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_config.dart';
+import '../network/api_client.dart';
+import '../services/auth_service.dart';
+import '../services/token_storage_service.dart';
 import '../../shared/data/services/cv_service.dart';
 // TFLite version - use when TFLite is working on Windows
 // import '../../shared/data/services/cv_service_enhanced.dart';
@@ -39,7 +42,15 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton<Box>(() => faceTemplatesBox, instanceName: 'face_templates');
   getIt.registerLazySingleton<Box>(() => attendanceRecordsBox, instanceName: 'attendance_records');
 
-  // Services
+  // Network Services
+  getIt.registerLazySingleton<ApiClient>(() => ApiClient());
+  getIt.registerLazySingleton<TokenStorageService>(() => TokenStorageService());
+  getIt.registerLazySingleton<AuthService>(() => AuthService(
+        apiClient: getIt<ApiClient>(),
+        tokenStorage: getIt<TokenStorageService>(),
+      ));
+
+  // Application Services
   getIt.registerLazySingleton<CVService>(() => CVService());
   getIt.registerLazySingleton<CVServiceMock>(() => CVServiceMock());
   getIt.registerLazySingleton<CameraService>(() => CameraService());

@@ -36,6 +36,8 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shared_preferences: ^2.2.2
+  # flutter_secure_storage: ^9.0.0  # Requires Visual Studio ATL component on Windows
+  # TODO: Re-enable for mobile builds (Android/iOS)
   
   # Network Status
   connectivity_plus: ^5.0.0
