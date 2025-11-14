@@ -5,6 +5,8 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/enrollment/presentation/pages/enrollment_list_page.dart';
 import '../../features/enrollment/presentation/pages/face_enrollment_page.dart';
+import '../../features/attendance/presentation/pages/attendance_scan_page.dart';
+import '../../features/attendance/presentation/pages/attendance_list_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -35,6 +37,22 @@ class AppRouter {
             studentName: extra['studentName'] as String,
           );
         },
+      ),
+      GoRoute(
+        path: '/attendance/scan',
+        builder: (context, state) {
+          final extra = (state.extra as Map<String, dynamic>?) ?? {};
+          return AttendanceScanPage(
+            teacherId: extra['teacherId'] as String? ?? 'teacher-1',
+            classId: extra['classId'] as String? ?? 'class-001',
+            totalStudents: extra['totalStudents'] as int? ?? 25,
+          );
+        },
+      ),
+      // NEW ROUTE: Attendance History Page
+      GoRoute(
+        path: '/attendance/history',
+        builder: (context, state) => const AttendanceListPage(),
       ),
     ],
   );

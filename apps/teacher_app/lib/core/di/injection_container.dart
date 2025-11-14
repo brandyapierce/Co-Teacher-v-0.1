@@ -32,10 +32,12 @@ Future<void> initializeDependencies() async {
   final appSettingsBox = await Hive.openBox('app_settings');
   final offlineQueueBox = await Hive.openBox('offline_queue');
   final faceTemplatesBox = await Hive.openBox('face_templates');
+  final attendanceRecordsBox = await Hive.openBox('attendance_records');
   
   getIt.registerLazySingleton<Box>(() => appSettingsBox, instanceName: 'app_settings');
   getIt.registerLazySingleton<Box>(() => offlineQueueBox, instanceName: 'offline_queue');
   getIt.registerLazySingleton<Box>(() => faceTemplatesBox, instanceName: 'face_templates');
+  getIt.registerLazySingleton<Box>(() => attendanceRecordsBox, instanceName: 'attendance_records');
 
   // Services
   getIt.registerLazySingleton<CVService>(() => CVService());

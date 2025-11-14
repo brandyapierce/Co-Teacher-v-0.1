@@ -68,15 +68,48 @@ class AttendanceTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.people, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text('Attendance', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 8),
-          Text('Coming in Week 2', style: Theme.of(context).textTheme.bodyMedium),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.people, size: 80, color: Colors.blue),
+            const SizedBox(height: 24),
+            Text(
+              'Attendance Scanning',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Scan your classroom to take attendance automatically',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.push('/attendance/scan');
+              },
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Start Attendance Scan'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () {
+                // Navigate to attendance history page
+                context.push('/attendance/history');
+              },
+              icon: const Icon(Icons.history),
+              label: const Text('View History'),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:hive/hive.dart';
 import 'package:dio/dio.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../core/config/app_config.dart';
 
@@ -67,10 +69,17 @@ class OfflineQueueService {
   late Dio _dio;
   Timer? _syncTimer;
   bool _isOnline = false;
+  StreamSubscription? _connectivitySubscription;
   final StreamController<bool> _onlineStatusController = 
       StreamController<bool>.broadcast();
+  final StreamController<int> _queueCountController = 
+      StreamController<int>.broadcast();
+  final StreamController<SyncProgress> _syncProgressController = 
+      StreamController<SyncProgress>.broadcast();
 
   Stream<bool> get onlineStatusStream => _onlineStatusController.stream;
+  Stream<int> get queueCountStream => _queueCountController.stream;
+  Stream<SyncProgress> get syncProgressStream => _syncProgressController.stream;
   bool get isOnline => _isOnline;
 
   Future<void> initialize() async {
@@ -81,8 +90,23 @@ class OfflineQueueService {
     _dio.options.connectTimeout = const Duration(seconds: 30);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
     
+    // Listen to connectivity changes
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
+      final wasOnline = _isOnline;
+      _isOnline = result != ConnectivityResult.none;
+      _onlineStatusController.add(_isOnline);
+      
+      // Trigger sync if we just came online
+      if (!wasOnline && _isOnline) {
+        _syncQueue();
+      }
+    });
+    
     _startPeriodicSync();
     await _checkOnlineStatus();
+    await _updateQueueCount();
   }
 
   void _startPeriodicSync() {
@@ -93,6 +117,15 @@ class OfflineQueueService {
   }
 
   Future<void> _checkOnlineStatus() async {
+    // First check network connectivity
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      _isOnline = false;
+      _onlineStatusController.add(_isOnline);
+      return;
+    }
+    
+    // Then verify API is reachable
     try {
       final response = await _dio.get('/health');
       _isOnline = response.statusCode == 200;
@@ -101,6 +134,11 @@ class OfflineQueueService {
     }
     
     _onlineStatusController.add(_isOnline);
+  }
+  
+  Future<void> _updateQueueCount() async {
+    final pendingItems = await _getPendingItems();
+    _queueCountController.add(pendingItems.length);
   }
 
   Future<void> addToQueue(QueueItemType type, Map<String, dynamic> data) async {
@@ -112,10 +150,22 @@ class OfflineQueueService {
     );
     
     await _queueBox.put(item.id, item.toJson());
+    await _updateQueueCount();
     
     if (_isOnline) {
       await _syncQueue();
     }
+  }
+  
+  /// Get count of pending items in queue
+  Future<int> getPendingCount() async {
+    final pendingItems = await _getPendingItems();
+    return pendingItems.length;
+  }
+  
+  /// Manually trigger sync
+  Future<void> manualSync() async {
+    await _syncQueue();
   }
 
   Future<void> _syncQueue() async {
@@ -125,14 +175,48 @@ class OfflineQueueService {
     
     final pendingItems = await _getPendingItems();
     
+    if (pendingItems.isEmpty) return;
+    
+    _syncProgressController.add(SyncProgress(
+      total: pendingItems.length,
+      synced: 0,
+      status: SyncStatus.syncing,
+    ));
+    
+    int syncedCount = 0;
+    int failedCount = 0;
+    
     for (final item in pendingItems) {
       try {
+        // Exponential backoff: wait longer for items with more retries
+        if (item.retryCount > 0) {
+          final delaySeconds = pow(2, item.retryCount).toInt();
+          await Future.delayed(Duration(seconds: min(delaySeconds, 60)));
+        }
+        
         await _processQueueItem(item);
         await _markItemCompleted(item.id);
+        syncedCount++;
+        
+        _syncProgressController.add(SyncProgress(
+          total: pendingItems.length,
+          synced: syncedCount,
+          status: SyncStatus.syncing,
+        ));
       } catch (e) {
         await _markItemFailed(item.id, e.toString());
+        failedCount++;
       }
     }
+    
+    await _updateQueueCount();
+    
+    _syncProgressController.add(SyncProgress(
+      total: pendingItems.length,
+      synced: syncedCount,
+      failed: failedCount,
+      status: failedCount > 0 ? SyncStatus.error : SyncStatus.completed,
+    ));
   }
 
   Future<List<QueueItem>> _getPendingItems() async {
@@ -207,7 +291,37 @@ class OfflineQueueService {
 
   void dispose() {
     _syncTimer?.cancel();
+    _connectivitySubscription?.cancel();
     _onlineStatusController.close();
+    _queueCountController.close();
+    _syncProgressController.close();
     _queueBox.close();
   }
+}
+
+/// Sync progress data
+class SyncProgress {
+  final int total;
+  final int synced;
+  final int failed;
+  final SyncStatus status;
+  final DateTime timestamp;
+
+  SyncProgress({
+    required this.total,
+    required this.synced,
+    this.failed = 0,
+    required this.status,
+  }) : timestamp = DateTime.now();
+
+  int get pending => total - synced - failed;
+  double get progress => total > 0 ? synced / total : 0.0;
+}
+
+/// Sync status enumeration
+enum SyncStatus {
+  idle,
+  syncing,
+  completed,
+  error,
 }
