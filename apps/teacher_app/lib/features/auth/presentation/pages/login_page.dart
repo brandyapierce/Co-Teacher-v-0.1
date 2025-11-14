@@ -1,65 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/config/app_config.dart';
+import '../providers/login_cubit.dart';
+import '../providers/login_state.dart';
 
-class LoginPage extends StatefulWidget {
+/// Login page where teachers enter credentials
+/// 
+/// WIDGET STRUCTURE:
+/// LoginPage (provides Cubit)
+///   └─ _LoginForm (actual UI)
+///        ├─ Email field
+///        ├─ Password field
+///        └─ Login button
+/// 
+/// WHY SPLIT INTO TWO WIDGETS?
+/// - LoginPage: Provides the BLoC (created once)
+/// - _LoginForm: Consumes the BLoC (can rebuild many times)
+/// - This prevents recreating the Cubit on every rebuild
+
+class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  Widget build(BuildContext context) {
+    // BlocProvider creates and provides the LoginCubit
+    // All child widgets can access it using context.read<LoginCubit>()
+    return BlocProvider(
+      create: (context) => LoginCubit()..checkAuthStatus(),
+      child: const _LoginForm(),
+    );
+  }
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
+/// The actual login form UI
+/// 
+/// This is a StatefulWidget because we need to:
+/// - Store TextEditingController instances
+/// - Store form validation state
+/// - Show/hide password
+class _LoginForm extends StatefulWidget {
+  const _LoginForm();
+
+  @override
+  State<_LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<_LoginForm> {
+  /// Controllers for text fields
+  /// 
+  /// WHY TEXT CONTROLLERS?
+  /// TextEditingController lets us:
+  /// - Get the current text: _emailController.text
+  /// - Set text programmatically: _emailController.text = 'email@test.com'
+  /// - Listen for changes: _emailController.addListener(...)
+  /// - Clear text: _emailController.clear()
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
 
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  /// Form key for validation
+  /// 
+  /// The GlobalKey<FormState> lets us:
+  /// - Validate all fields: _formKey.currentState?.validate()
+  /// - Save all fields: _formKey.currentState?.save()
+  /// - Reset form: _formKey.currentState?.reset()
+  final _formKey = GlobalKey<FormState>();
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final dio = Dio();
-      dio.options.baseUrl = AppConfig.apiBaseUrl;
-      
-      final response = await dio.post(
-        '/api/v1/auth/login',
-        data: {
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Navigate to home on success
-        if (mounted) {
-          context.go('/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
+  /// Track password visibility
+  /// 
+  /// When true, show password as text
+  /// When false, show password as dots (•••)
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
+    // IMPORTANT: Always dispose controllers to prevent memory leaks!
+    // 
+    // Controllers keep listeners and resources in memory.
+    // If we don't dispose them, they stay in memory even after widget is destroyed.
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -68,80 +85,184 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Icon(
-                  Icons.school,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'teacher@school.edu',
-                    prefixIcon: Icon(Icons.email),
+      // BlocListener listens for state changes and performs side effects
+      // Side effects = things that aren't just UI updates (navigation, dialogs, etc.)
+      body: BlocListener<LoginCubit, LoginState>(
+        // When should we listen? When status changes to success or failure
+        listener: (context, state) {
+          if (state.isSuccess) {
+            // Login succeeded! Navigate to home
+            // 
+            // context.go() replaces current page (can't go back to login)
+            // context.push() adds new page (can go back)
+            // We use go() because user shouldn't go back to login after logging in
+            context.go('/home');
+          } else if (state.isFailure) {
+            // Login failed! Show error message
+            // 
+            // SnackBar is a temporary message at bottom of screen
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'Login failed'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        // BlocBuilder rebuilds UI when state changes
+        child: BlocBuilder<LoginCubit, LoginState>(
+          builder: (context, state) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // App logo/title
+                      const Icon(
+                        Icons.school,
+                        size: 80,
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Co-Teacher',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Teacher Login',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                      ),
+                      const SizedBox(height: 48),
+
+                      // Email field
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          hintText: 'teacher@school.com',
+                          prefixIcon: Icon(Icons.email),
+                          border: OutlineInputBorder(),
+                        ),
+                        // Validation function
+                        // Returns null if valid, returns error message if invalid
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          // Basic email validation
+                          if (!value.contains('@')) {
+                            return 'Please enter a valid email';
+                          }
+                          return null; // Valid!
+                        },
+                        // Disable field while loading
+                        enabled: !state.isLoading,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Password field
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          hintText: 'Enter your password',
+                          prefixIcon: const Icon(Icons.lock),
+                          border: const OutlineInputBorder(),
+                          // Eye icon to show/hide password
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                        enabled: !state.isLoading,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Login button
+                      ElevatedButton(
+                        onPressed: state.isLoading
+                            ? null // Disable button while loading
+                            : () {
+                                // Validate form
+                                if (_formKey.currentState?.validate() ?? false) {
+                                  // Form is valid, proceed with login
+                                  context.read<LoginCubit>().login(
+                                        email: _emailController.text.trim(),
+                                        password: _passwordController.text,
+                                      );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: state.isLoading
+                            // Show loading spinner while logging in
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Login',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Forgot password link
+                      TextButton(
+                        onPressed: state.isLoading
+                            ? null
+                            : () {
+                                // TODO: Implement forgot password
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Forgot password feature coming soon!'),
+                                  ),
+                                );
+                              },
+                        child: const Text('Forgot Password?'),
+                      ),
+                    ],
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Login'),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Demo: Use any email/password in dev mode',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 }
-
