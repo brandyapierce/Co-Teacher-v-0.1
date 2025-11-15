@@ -71,6 +71,32 @@ class _LoginFormState extends State<_LoginForm> {
   /// When false, show password as dots (•••)
   bool _obscurePassword = true;
 
+  /// Track "Remember Me" checkbox state
+  /// 
+  /// EDUCATIONAL NOTE - Why separate from state?
+  /// This is UI-only state (checkbox checked/unchecked).
+  /// It doesn't need to be in BLoC state because:
+  /// 1. Only this widget needs it
+  /// 2. Doesn't affect other parts of app
+  /// 3. Simpler to use setState() for UI-only state
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-fill email if remembered from previous login
+    // We do this in initState (runs once when widget is created)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final rememberedEmail = context.read<LoginCubit>().state.rememberedEmail;
+      if (rememberedEmail != null) {
+        _emailController.text = rememberedEmail;
+        setState(() {
+          _rememberMe = true; // Check the box since we have a remembered email
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
     // IMPORTANT: Always dispose controllers to prevent memory leaks!
@@ -205,7 +231,42 @@ class _LoginFormState extends State<_LoginForm> {
                         },
                         enabled: !state.isLoading,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+
+                      // Remember Me checkbox
+                      // 
+                      // EDUCATIONAL NOTE - CheckboxListTile:
+                      // This is a pre-built widget that combines:
+                      // - Checkbox (the box you click)
+                      // - Text label (what it means)
+                      // - Tap handling (can tap text OR box)
+                      // 
+                      // Much easier than building these separately!
+                      CheckboxListTile(
+                        title: const Text('Remember Me'),
+                        subtitle: Text(
+                          'Save email for next login',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        value: _rememberMe,
+                        onChanged: state.isLoading
+                            ? null
+                            : (value) {
+                                // Update checkbox state
+                                // 
+                                // setState() tells Flutter to rebuild this widget
+                                // with the new _rememberMe value
+                                setState(() {
+                                  _rememberMe = value ?? false;
+                                });
+                              },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 8),
 
                       // Login button
                       ElevatedButton(
@@ -215,9 +276,12 @@ class _LoginFormState extends State<_LoginForm> {
                                 // Validate form
                                 if (_formKey.currentState?.validate() ?? false) {
                                   // Form is valid, proceed with login
+                                  // 
+                                  // NEW: Pass rememberMe parameter
                                   context.read<LoginCubit>().login(
                                         email: _emailController.text.trim(),
                                         password: _passwordController.text,
+                                        rememberMe: _rememberMe,
                                       );
                                 }
                               },
@@ -246,12 +310,8 @@ class _LoginFormState extends State<_LoginForm> {
                         onPressed: state.isLoading
                             ? null
                             : () {
-                                // TODO: Implement forgot password
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Forgot password feature coming soon!'),
-                                  ),
-                                );
+                                // Navigate to forgot password page
+                                context.push('/forgot-password');
                               },
                         child: const Text('Forgot Password?'),
                       ),

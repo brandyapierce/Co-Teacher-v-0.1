@@ -1019,8 +1019,156 @@ getIt.registerLazySingleton<AuthService>(() => AuthService(
 
 ---
 
-*Last Updated: 2025-11-14 - Master Protocol Session (Phase 2 Complete)*  
+---
+
+### [WEEK 4 - PHASE 2.5] Enhanced Login Features ✅ COMPLETE
+**Start Time**: November 14, 2025 (continued session)  
+**Completion Time**: November 14, 2025  
+**Duration**: ~30 minutes  
+**Priority**: MEDIUM  
+**Status**: ✅ COMPLETE
+
+#### Tasks Completed:
+1. ✅ Add "Remember Me" checkbox functionality
+2. ✅ Store remember me preference (SharedPreferences)
+3. ✅ Auto-fill email if remembered
+4. ✅ Add "Forgot Password" flow
+5. ✅ Create beautiful password reset page
+
+#### Files Created/Modified (4 modified, 1 new):
+**Modified Files:**
+1. `login_state.dart` - Added rememberedEmail field
+2. `login_cubit.dart` - Remember me logic + SharedPreferences
+3. `login_page.dart` - Checkbox UI + auto-fill
+4. `app_router.dart` - Added forgot password route
+
+**New Files:**
+1. `forgot_password_page.dart` - Complete password reset UI
+
+#### Technical Implementation:
+
+**Remember Me Feature:**
+- Checkbox on login page
+- Saves email to SharedPreferences on successful login
+- Auto-fills email field on next app open
+- Clears preference if unchecked
+- Only saves after successful login (prevents saving wrong emails)
+
+**SharedPreferences Storage:**
+```dart
+// Keys
+static const String _rememberMeKey = 'remember_me';
+static const String _rememberedEmailKey = 'remembered_email';
+
+// Save
+await prefs.setBool(_rememberMeKey, true);
+await prefs.setString(_rememberedEmailKey, email);
+
+// Load
+final rememberMe = prefs.getBool(_rememberMeKey) ?? false;
+final email = prefs.getString(_rememberedEmailKey);
+```
+
+**Auto-Fill Logic:**
+- LoginCubit loads remembered email on creation
+- Email set in initState using WidgetsBinding.addPostFrameCallback
+- Checkbox automatically checked if email is remembered
+- Smooth UX - user doesn't have to retype email
+
+**Forgot Password Page:**
+- Beautiful UI with icon and instructions
+- Email validation
+- Simulated "send email" with loading state
+- Success screen with helpful tips
+- Resend email option
+- Back to login navigation
+- Animated success icon (elastic bounce)
+
+#### Educational Concepts:
+
+**1. SharedPreferences:**
+- Simple key-value storage
+- Survives app restarts
+- Fast and synchronous access
+- Good for small data (preferences, settings)
+- NOT encrypted (don't store passwords!)
+
+**2. initState vs Constructor:**
+```dart
+// Constructor - can't be async
+LoginCubit() : super(LoginState()) {
+  _loadData();  // Call async method
+}
+
+// initState - can't be async, but can call async
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Run after first frame builds
+    _loadData();
+  });
+}
+```
+
+**3. CheckboxListTile:**
+- Pre-built widget combining checkbox + text
+- Can tap checkbox OR text
+- Includes subtitle for additional context
+- controlAffinity controls checkbox position
+
+**4. Form States:**
+```dart
+// Two-screen pattern:
+Screen 1: Form (collect data)
+Screen 2: Success/Result (show outcome)
+
+// Toggle between them:
+_emailSent ? _buildSuccessView() : _buildFormView()
+```
+
+**5. Animated Success:**
+```dart
+TweenAnimationBuilder<double>(
+  tween: Tween(begin: 0.0, end: 1.0),
+  duration: Duration(milliseconds: 600),
+  curve: Curves.elasticOut,  // Bouncy!
+  builder: (context, value, child) {
+    return Transform.scale(scale: value, child: child);
+  },
+)
+```
+
+#### User Experience Flow:
+
+**First Time Login:**
+1. User opens app → Email field is empty
+2. User enters credentials
+3. User checks "Remember Me"
+4. Login succeeds → Email saved
+5. Next time: Email auto-filled!
+
+**Forgot Password:**
+1. User clicks "Forgot Password?"
+2. Navigates to reset page
+3. Enters email
+4. Clicks "Send Reset Link"
+5. Shows success screen
+6. Can resend or go back to login
+
+#### Build Status:
+- ✅ Compiled successfully (130.7s)
+- ✅ No linter errors
+- ✅ Remember me working
+- ✅ Auto-fill working
+- ✅ Forgot password UI complete
+
+**Result**: ✅ **PHASE 2.5 COMPLETE - Enhanced login UX with Remember Me & Password Reset!**
+
+---
+
+*Last Updated: 2025-11-14 - Master Protocol Session (Phase 2.5 Complete)*  
 *Protocol: MASTER*  
-*Sub-Protocols: BACKEND-INTEGRATION-001 (Phase 2 - COMPLETE)*  
-*Status: Week 4 Phase 2 Complete - Ready for Phase 3 (Student Roster API)*
+*Sub-Protocols: BACKEND-INTEGRATION-001 (Phase 2.5 - COMPLETE)*  
+*Status: Week 4 Phase 2.5 Complete - Ready to push to GitHub!*
 
