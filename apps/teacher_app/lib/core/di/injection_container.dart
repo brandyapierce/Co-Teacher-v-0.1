@@ -15,6 +15,7 @@ import '../../shared/data/services/camera_service.dart';
 import '../../shared/data/services/location_service.dart';
 import '../../shared/data/services/offline_queue_service.dart';
 import '../../features/students/data/repositories/student_repository.dart';
+import '../../features/attendance/data/repositories/attendance_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -62,5 +63,6 @@ Future<void> initializeDependencies() async {
   
   // Repositories
   getIt.registerLazySingleton<StudentRepository>(() => StudentRepository());
+  getIt.registerLazySingleton<AttendanceRepository>(() => AttendanceRepository());
 }
 

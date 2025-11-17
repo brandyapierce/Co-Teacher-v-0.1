@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:hive/hive.dart';
-import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:get_it/get_it.dart';
 
-import '../../../core/config/app_config.dart';
+import '../../../core/network/api_client.dart';
 
 enum QueueItemType {
   attendance,
@@ -64,9 +64,19 @@ class QueueItem {
   }
 }
 
+/// Service for managing offline data sync queue
+/// 
+/// EDUCATIONAL NOTE - Offline-First Architecture:
+/// This service implements an "offline queue" pattern:
+/// 1. All data changes are saved locally first (fast, always works)
+/// 2. Changes are queued for sync to the backend
+/// 3. When online, the queue automatically syncs to the server
+/// 4. Failed syncs retry with exponential backoff
+/// 
+/// This gives users a seamless experience even with poor connectivity.
 class OfflineQueueService {
   late Box _queueBox;
-  late Dio _dio;
+  late ApiClient _apiClient;
   Timer? _syncTimer;
   bool _isOnline = false;
   StreamSubscription? _connectivitySubscription;
@@ -85,10 +95,9 @@ class OfflineQueueService {
   Future<void> initialize() async {
     _queueBox = await Hive.openBox('offline_queue');
     
-    _dio = Dio();
-    _dio.options.baseUrl = AppConfig.apiBaseUrl;
-    _dio.options.connectTimeout = const Duration(seconds: 30);
-    _dio.options.receiveTimeout = const Duration(seconds: 30);
+    // Use the shared ApiClient for all API calls
+    // This ensures JWT tokens are added automatically via interceptors
+    _apiClient = GetIt.instance<ApiClient>();
     
     // Listen to connectivity changes
     _connectivitySubscription = Connectivity()
@@ -116,6 +125,11 @@ class OfflineQueueService {
     );
   }
 
+  /// Checks if device is online and API is reachable
+  /// 
+  /// Two-step check:
+  /// 1. Network connectivity (wifi/cellular/none)
+  /// 2. API health check (is backend server responding?)
   Future<void> _checkOnlineStatus() async {
     // First check network connectivity
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -127,7 +141,7 @@ class OfflineQueueService {
     
     // Then verify API is reachable
     try {
-      final response = await _dio.get('/health');
+      final response = await _apiClient.healthCheck();
       _isOnline = response.statusCode == 200;
     } catch (e) {
       _isOnline = false;
@@ -235,19 +249,31 @@ class OfflineQueueService {
     return items;
   }
 
+  /// Process a single queue item by sending it to the appropriate API endpoint
+  /// 
+  /// EDUCATIONAL NOTE - Type-based routing:
+  /// Each queue item type goes to a different API endpoint.
+  /// This allows us to queue different kinds of operations and sync them all.
   Future<void> _processQueueItem(QueueItem item) async {
     switch (item.type) {
       case QueueItemType.attendance:
-        await _dio.post('/api/v1/attendance/scan', data: item.data);
+        // Send attendance record to backend
+        await _apiClient.createAttendance(item.data);
         break;
       case QueueItemType.rotation:
-        await _dio.put('/api/v1/rotations/${item.data['id']}/status', data: item.data);
+        // Update rotation status (for duty roster feature)
+        await _apiClient.dio.put(
+          '/api/v1/rotations/${item.data['id']}/status',
+          data: item.data,
+        );
         break;
       case QueueItemType.evidence:
-        await _dio.post('/api/v1/evidence/upload', data: item.data);
+        // Upload evidence document
+        await _apiClient.dio.post('/api/v1/evidence/upload', data: item.data);
         break;
       case QueueItemType.location:
         // Location updates - can be skipped or sent to different endpoint
+        // Not implemented yet
         break;
     }
   }

@@ -1,58 +1,64 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
+import 'package:get_it/get_it.dart';
 import '../../data/models/attendance_record.dart';
+import '../../data/repositories/attendance_repository.dart';
+import '../../../../core/network/app_exception.dart';
 import 'attendance_list_state.dart';
 
 /// Cubit (Business Logic Component) for managing attendance history
 /// 
 /// Think of this as the "manager" of the attendance list.
 /// It handles:
-/// - Loading attendance records from storage
+/// - Loading attendance records from storage AND backend
 /// - Applying filters and search
 /// - Editing and deleting records
+/// - Syncing local changes to backend
 /// - Managing loading and error states
+/// 
+/// EDUCATIONAL NOTE - Evolution from direct Hive to Repository:
+/// Previously, this Cubit talked directly to Hive storage. Now it uses
+/// the AttendanceRepository which abstracts:
+/// - Where data comes from (local cache vs API)
+/// - How syncing works
+/// - Error handling
+/// 
+/// This makes the Cubit simpler and more focused on UI logic.
 class AttendanceListCubit extends Cubit<AttendanceListState> {
-  final Box _attendanceBox;
+  final AttendanceRepository _repository = GetIt.instance<AttendanceRepository>();
 
   /// Constructor: Initialize with empty state
-  /// We pass in the Hive box so this cubit can access stored data
-  AttendanceListCubit({
-    required Box attendanceBox,
-  })  : _attendanceBox = attendanceBox,
-        super(const AttendanceListState());
+  AttendanceListCubit() : super(const AttendanceListState());
 
-  /// Load all attendance records from storage
+  /// Load all attendance records from repository
   /// 
   /// This is called when the page first opens.
-  /// Pattern: Set loading → fetch data → update state with data
-  Future<void> loadRecords() async {
+  /// Pattern: Set loading → fetch data (from cache + API) → update state
+  /// 
+  /// If [forceRefresh] is true, bypass cache and fetch from API.
+  /// The repository handles the offline-first strategy automatically.
+  Future<void> loadRecords({bool forceRefresh = false}) async {
     // Step 1: Tell UI we're loading (shows loading spinner)
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
-      // Step 2: Get all records from Hive storage
-      final records = <AttendanceRecord>[];
-      
-      // Hive stores data as key-value pairs
-      // We iterate through all keys and convert data to AttendanceRecord objects
-      for (final key in _attendanceBox.keys) {
-        final data = _attendanceBox.get(key);
-        if (data != null) {
-          // Each record is stored as JSON (Map<String, dynamic>)
-          final record = AttendanceRecord.fromJson(
-            Map<String, dynamic>.from(data as Map),
-          );
-          records.add(record);
-        }
-      }
+      // Step 2: Get records from repository
+      // The repository will try cache first, then API if needed
+      final records = await _repository.getAttendance(
+        forceRefresh: forceRefresh,
+      );
 
       // Step 3: Update state with loaded records (UI rebuilds automatically)
       emit(state.copyWith(
         records: records,
         isLoading: false,
       ));
-    } catch (e) {
+    } on AppException catch (e) {
       // Step 4: If something goes wrong, show error message
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.message,
+      ));
+    } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         errorMessage: 'Failed to load records: $e',
@@ -115,7 +121,8 @@ class AttendanceListCubit extends Cubit<AttendanceListState> {
 
   /// Edit an attendance record
   /// 
-  /// Pattern: Find record → update it → save to storage → reload UI
+  /// Pattern: Find record → update it → save via repository → sync to backend
+  /// The repository handles both local storage and API sync automatically.
   Future<void> editRecord(String recordId, {
     String? status,
     String? notes,
@@ -133,8 +140,8 @@ class AttendanceListCubit extends Cubit<AttendanceListState> {
         notes: notes ?? oldRecord.notes,
       );
 
-      // Save to Hive storage
-      await _attendanceBox.put(recordId, updatedRecord.toJson());
+      // Save via repository (handles local + API sync)
+      await _repository.updateAttendance(updatedRecord);
 
       // Update our in-memory list
       final updatedRecords = List<AttendanceRecord>.from(state.records);
@@ -142,6 +149,10 @@ class AttendanceListCubit extends Cubit<AttendanceListState> {
 
       // Update state (UI rebuilds)
       emit(state.copyWith(records: updatedRecords));
+    } on AppException catch (e) {
+      emit(state.copyWith(
+        errorMessage: e.message,
+      ));
     } catch (e) {
       emit(state.copyWith(
         errorMessage: 'Failed to edit record: $e',
@@ -151,11 +162,12 @@ class AttendanceListCubit extends Cubit<AttendanceListState> {
 
   /// Delete an attendance record
   /// 
-  /// Pattern: Remove from storage → remove from list → update UI
+  /// Pattern: Delete via repository → remove from list → update UI
+  /// The repository handles both local deletion and API sync.
   Future<void> deleteRecord(String recordId) async {
     try {
-      // Remove from Hive storage
-      await _attendanceBox.delete(recordId);
+      // Delete via repository (handles local + API)
+      await _repository.deleteAttendance(recordId);
 
       // Remove from our in-memory list
       final updatedRecords = state.records
@@ -164,6 +176,10 @@ class AttendanceListCubit extends Cubit<AttendanceListState> {
 
       // Update state (UI rebuilds without the deleted record)
       emit(state.copyWith(records: updatedRecords));
+    } on AppException catch (e) {
+      emit(state.copyWith(
+        errorMessage: e.message,
+      ));
     } catch (e) {
       emit(state.copyWith(
         errorMessage: 'Failed to delete record: $e',
@@ -171,9 +187,21 @@ class AttendanceListCubit extends Cubit<AttendanceListState> {
     }
   }
 
-  /// Refresh records (pull from storage again)
+  /// Refresh records (force reload from API)
+  /// 
+  /// This bypasses the cache and fetches fresh data from the backend.
   Future<void> refresh() async {
-    await loadRecords();
+    await loadRecords(forceRefresh: true);
+  }
+
+  /// Get unsynced records count (for showing in UI)
+  Future<int> getUnsyncedCount() async {
+    try {
+      final unsyncedRecords = await _repository.getUnsyncedRecords();
+      return unsyncedRecords.length;
+    } catch (e) {
+      return 0;
+    }
   }
 }
 

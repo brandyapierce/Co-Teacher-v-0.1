@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/attendance_list_cubit.dart';
 import '../providers/attendance_list_state.dart';
@@ -13,6 +12,11 @@ import '../widgets/attendance_card.dart';
 /// 2. BlocBuilder listens for state changes
 /// 3. UI automatically rebuilds when state changes
 /// 4. User interactions call Cubit methods
+/// 
+/// EDUCATIONAL NOTE - Repository Pattern Integration:
+/// The Cubit now uses AttendanceRepository internally via GetIt,
+/// so we no longer need to pass Hive boxes as parameters.
+/// This makes the code cleaner and easier to test.
 class AttendanceListPage extends StatelessWidget {
   const AttendanceListPage({super.key});
 
@@ -22,11 +26,8 @@ class AttendanceListPage extends StatelessWidget {
     // When this widget is disposed, the Cubit is automatically closed
     return BlocProvider(
       create: (context) {
-        // Create the Cubit with Hive box
-        // Note: In production, you'd inject this via dependency injection
-        final cubit = AttendanceListCubit(
-          attendanceBox: Hive.box('attendance_records'),
-        );
+        // Create the Cubit (repository is injected via GetIt internally)
+        final cubit = AttendanceListCubit();
         // Load records immediately when page opens
         cubit.loadRecords();
         return cubit;
