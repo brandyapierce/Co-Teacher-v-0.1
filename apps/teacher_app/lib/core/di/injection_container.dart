@@ -14,6 +14,7 @@ import '../../shared/data/services/cv_service_mock.dart';
 import '../../shared/data/services/camera_service.dart';
 import '../../shared/data/services/location_service.dart';
 import '../../shared/data/services/offline_queue_service.dart';
+import '../../features/students/data/repositories/student_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -36,11 +37,13 @@ Future<void> initializeDependencies() async {
   final offlineQueueBox = await Hive.openBox('offline_queue');
   final faceTemplatesBox = await Hive.openBox('face_templates');
   final attendanceRecordsBox = await Hive.openBox('attendance_records');
+  final studentsBox = await Hive.openBox('students');
   
   getIt.registerLazySingleton<Box>(() => appSettingsBox, instanceName: 'app_settings');
   getIt.registerLazySingleton<Box>(() => offlineQueueBox, instanceName: 'offline_queue');
   getIt.registerLazySingleton<Box>(() => faceTemplatesBox, instanceName: 'face_templates');
   getIt.registerLazySingleton<Box>(() => attendanceRecordsBox, instanceName: 'attendance_records');
+  getIt.registerLazySingleton<Box>(() => studentsBox, instanceName: 'students');
 
   // Network Services
   getIt.registerLazySingleton<ApiClient>(() => ApiClient());
@@ -56,5 +59,8 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton<CameraService>(() => CameraService());
   getIt.registerLazySingleton<LocationService>(() => LocationService());
   getIt.registerLazySingleton<OfflineQueueService>(() => OfflineQueueService());
+  
+  // Repositories
+  getIt.registerLazySingleton<StudentRepository>(() => StudentRepository());
 }
 

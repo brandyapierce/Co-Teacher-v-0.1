@@ -26,6 +26,11 @@ class _HomePageState extends State<HomePage> {
         title: const Text('My AI CoTeacher'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.people),
+            tooltip: 'Students',
+            onPressed: () => context.push('/students'),
+          ),
+          IconButton(
             icon: const Icon(Icons.face),
             tooltip: 'Face Enrollment',
             onPressed: () => context.push('/enrollment'),

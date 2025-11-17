@@ -185,6 +185,12 @@ class ApiClient {
     return await _dio.delete('/api/v1/attendance/$attendanceId');
   }
 
+  /// DELETE /api/v1/students/{id}
+  /// Delete student
+  Future<Response> deleteStudent(String studentId) async {
+    return await _dio.delete('/api/v1/students/$studentId');
+  }
+
   // ==================== CLASS ENDPOINTS ====================
 
   /// GET /api/v1/classes

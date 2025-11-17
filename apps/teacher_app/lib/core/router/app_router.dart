@@ -8,6 +8,7 @@ import '../../features/enrollment/presentation/pages/enrollment_list_page.dart';
 import '../../features/enrollment/presentation/pages/face_enrollment_page.dart';
 import '../../features/attendance/presentation/pages/attendance_scan_page.dart';
 import '../../features/attendance/presentation/pages/attendance_list_page.dart';
+import '../../features/students/presentation/pages/student_list_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -58,6 +59,11 @@ class AppRouter {
       GoRoute(
         path: '/attendance/history',
         builder: (context, state) => const AttendanceListPage(),
+      ),
+      // NEW ROUTE: Student List Page
+      GoRoute(
+        path: '/students',
+        builder: (context, state) => const StudentListPage(),
       ),
     ],
   );
