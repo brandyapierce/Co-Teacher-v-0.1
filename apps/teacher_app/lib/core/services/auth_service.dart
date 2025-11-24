@@ -45,9 +45,12 @@ class AuthService {
         // Extract tokens from response
         final data = response.data;
         final accessToken = data['access_token'] as String;
-        final refreshToken = data['refresh_token'] as String;
-        final userId = data['user_id'] as String;
-        final userEmail = data['email'] as String;
+        // Backend doesn't send refresh_token yet, so we'll reuse access_token for now
+        final refreshToken = data['refresh_token'] as String? ?? accessToken;
+        // Backend sends teacher_id instead of user_id
+        final userId = (data['teacher_id'] ?? data['user_id']) as String;
+        // Backend doesn't send email in login response, use the login email
+        final userEmail = data['email'] as String? ?? email;
 
         // Store tokens securely
         await _tokenStorage.saveTokens(

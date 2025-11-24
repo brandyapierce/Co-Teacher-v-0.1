@@ -8,3 +8,5 @@ $yes | flutter doctor --android-licenses
 Write-Host "Done! Licenses should be accepted." -ForegroundColor Green
 
 
+
+
