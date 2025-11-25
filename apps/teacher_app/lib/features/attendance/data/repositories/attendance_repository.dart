@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/network/app_exception.dart';
 import '../models/attendance_record.dart';
+import '../services/attendance_api_service.dart';
 
 /// Repository for managing attendance data
 /// 
@@ -19,7 +19,7 @@ import '../models/attendance_record.dart';
 /// Architecture:
 /// Cubit → Repository → [ApiClient, Hive] ← Repository → Cubit
 class AttendanceRepository {
-  final ApiClient _apiClient = GetIt.instance<ApiClient>();
+  final AttendanceApiService _apiService = GetIt.instance<AttendanceApiService>();
   final Box _attendanceBox = GetIt.instance<Box>(instanceName: 'attendance_records');
 
   /// Get all attendance records with optional filters
@@ -55,26 +55,17 @@ class AttendanceRepository {
 
     // 2. Fetch from API if cache is empty or refresh forced
     try {
-      final response = await _apiClient.getAttendance(
+      records = await _apiService.getAttendance(
         classId: classId,
         studentId: studentId,
         startDate: startDate,
         endDate: endDate,
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> recordJsonList = response.data;
-        records = recordJsonList
-            .map((json) => AttendanceRecord.fromJson(json as Map<String, dynamic>))
-            .toList();
-
-        // 3. Update local cache with fresh data
-        await _updateCache(records);
-        
-        return records;
-      } else {
-        throw AppException('Failed to fetch attendance: ${response.statusMessage}');
-      }
+      // 3. Update local cache with fresh data
+      await _updateCache(records);
+      
+      return records;
     } on DioException catch (e) {
       // If API fails, try to return cached data
       if (_attendanceBox.isNotEmpty) {
@@ -119,19 +110,13 @@ class AttendanceRepository {
 
       // Try to sync to API if online
       try {
-        final response = await _apiClient.createAttendance(record.toJson());
-        if (response.statusCode == 201) {
-          // Update record with server response (might have server-generated fields)
-          final serverRecord = AttendanceRecord.fromJson(
-            response.data as Map<String, dynamic>,
-          );
-          
-          // Mark as synced and update cache
-          final syncedRecord = serverRecord.copyWith(synced: true);
-          await _attendanceBox.put(syncedRecord.id, syncedRecord.toJson());
-          
-          return syncedRecord;
-        }
+        final serverRecord = await _apiService.createAttendance(record);
+        
+        // Mark as synced and update cache
+        final syncedRecord = serverRecord.copyWith(synced: true);
+        await _attendanceBox.put(syncedRecord.id, syncedRecord.toJson());
+        
+        return syncedRecord;
       } on DioException catch (e) {
         // If API fails, record is still saved locally
         // It will be synced later by OfflineQueueService
@@ -153,20 +138,13 @@ class AttendanceRepository {
 
       // Try to sync to API
       try {
-        final response = await _apiClient.updateAttendance(
-          record.id,
-          record.toJson(),
-        );
+        final serverRecord = await _apiService.updateAttendance(record.id, record);
         
-        if (response.statusCode == 200) {
-          // Mark as synced
-          final syncedRecord = AttendanceRecord.fromJson(
-            response.data as Map<String, dynamic>,
-          ).copyWith(synced: true);
-          
-          await _attendanceBox.put(syncedRecord.id, syncedRecord.toJson());
-          return syncedRecord;
-        }
+        // Mark as synced
+        final syncedRecord = serverRecord.copyWith(synced: true);
+        
+        await _attendanceBox.put(syncedRecord.id, syncedRecord.toJson());
+        return syncedRecord;
       } on DioException catch (e) {
         print('API sync failed, update saved locally: ${e.message}');
       }
@@ -182,7 +160,7 @@ class AttendanceRepository {
     try {
       // Delete from API first
       try {
-        await _apiClient.deleteAttendance(recordId);
+        await _apiService.deleteAttendance(recordId);
       } on DioException catch (e) {
         print('API delete failed: ${e.message}');
       }

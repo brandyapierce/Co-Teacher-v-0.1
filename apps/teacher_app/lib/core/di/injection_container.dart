@@ -15,7 +15,9 @@ import '../../shared/data/services/camera_service.dart';
 import '../../shared/data/services/location_service.dart';
 import '../../shared/data/services/offline_queue_service.dart';
 import '../../features/students/data/repositories/student_repository.dart';
+import '../../features/students/data/services/student_api_service.dart';
 import '../../features/attendance/data/repositories/attendance_repository.dart';
+import '../../features/attendance/data/services/attendance_api_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -52,6 +54,14 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton<AuthService>(() => AuthService(
         apiClient: getIt<ApiClient>(),
         tokenStorage: getIt<TokenStorageService>(),
+      ));
+  
+  // API Services (Week 4 - Backend Integration)
+  getIt.registerLazySingleton<StudentApiService>(() => StudentApiService(
+        getIt<ApiClient>(),
+      ));
+  getIt.registerLazySingleton<AttendanceApiService>(() => AttendanceApiService(
+        getIt<ApiClient>(),
       ));
 
   // Application Services

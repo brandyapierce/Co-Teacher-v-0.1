@@ -114,8 +114,9 @@ class Student extends Equatable {
       id: json['id'] as String,
       firstName: json['first_name'] as String,
       lastName: json['last_name'] as String,
-      email: json['email'] as String?,
-      grade: json['grade'] as String?,
+      email: json['email'] as String? ?? json['parent_email'] as String?,
+      // Backend sends 'grade_level' instead of 'grade'
+      grade: json['grade_level'] as String? ?? json['grade'] as String?,
       classId: json['class_id'] as String?,
       photoUrl: json['photo_url'] as String?,
       isFaceEnrolled: json['is_face_enrolled'] as bool? ?? false,

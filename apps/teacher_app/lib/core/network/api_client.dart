@@ -87,15 +87,16 @@ class ApiClient {
 
   // ==================== STUDENT ROSTER ENDPOINTS ====================
 
-  /// GET /api/v1/students
+  /// GET /api/v1/attendance/students
   /// Get list of students (can be filtered by class)
+  /// Note: Backend endpoint is /api/v1/attendance/students (verified via testing)
   Future<Response> getStudents({
     String? classId,
     int? page,
     int? limit,
   }) async {
     return await _dio.get(
-      '/api/v1/students',
+      '/api/v1/attendance/students',
       queryParameters: {
         if (classId != null) 'class_id': classId,
         if (page != null) 'page': page,
@@ -127,10 +128,11 @@ class ApiClient {
 
   // ==================== ATTENDANCE ENDPOINTS ====================
 
-  /// POST /api/v1/attendance
+  /// POST /api/v1/attendance/scan
   /// Submit attendance record
+  /// Note: Backend endpoint is /api/v1/attendance/scan (verified via testing)
   Future<Response> createAttendance(Map<String, dynamic> attendanceData) async {
-    return await _dio.post('/api/v1/attendance', data: attendanceData);
+    return await _dio.post('/api/v1/attendance/scan', data: attendanceData);
   }
 
   /// POST /api/v1/attendance/batch
@@ -144,8 +146,9 @@ class ApiClient {
     );
   }
 
-  /// GET /api/v1/attendance
+  /// GET /api/v1/attendance/records
   /// Get attendance records with filters
+  /// Note: Backend endpoint is /api/v1/attendance/records (verified via testing)
   Future<Response> getAttendance({
     String? classId,
     String? studentId,
@@ -155,7 +158,7 @@ class ApiClient {
     int? limit,
   }) async {
     return await _dio.get(
-      '/api/v1/attendance',
+      '/api/v1/attendance/records',
       queryParameters: {
         if (classId != null) 'class_id': classId,
         if (studentId != null) 'student_id': studentId,

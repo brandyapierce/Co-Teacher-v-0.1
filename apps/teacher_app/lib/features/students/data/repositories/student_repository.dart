@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:hive/hive.dart';
 import 'package:get_it/get_it.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../shared/data/models/student.dart';
+import '../services/student_api_service.dart';
 
 /// Repository for managing student data
 /// 
@@ -23,13 +23,13 @@ import '../../../../shared/data/models/student.dart';
 ///           [Return cached data]
 
 class StudentRepository {
-  final ApiClient _apiClient;
+  final StudentApiService _apiService;
   final Box _studentsBox;
 
   StudentRepository({
-    ApiClient? apiClient,
+    StudentApiService? apiService,
     Box? studentsBox,
-  })  : _apiClient = apiClient ?? GetIt.instance<ApiClient>(),
+  })  : _apiService = apiService ?? GetIt.instance<StudentApiService>(),
         _studentsBox = studentsBox ?? GetIt.instance<Box>(instanceName: 'students');
 
   /// Get all students for a class
@@ -43,22 +43,13 @@ class StudentRepository {
   /// This gives users instant feedback even on slow networks!
   Future<List<Student>> getStudents({String? classId}) async {
     try {
-      // Try to fetch from API
-      final response = await _apiClient.getStudents(classId: classId);
+      // Try to fetch from API using StudentApiService
+      final students = await _apiService.getStudents(classId: classId);
 
-      if (response.statusCode == 200) {
-        // Parse JSON array to list of Student objects
-        final List<dynamic> data = response.data['students'] ?? response.data;
-        final students = data.map((json) => Student.fromJson(json)).toList();
+      // Cache the results
+      await _cacheStudents(students);
 
-        // Cache the results
-        await _cacheStudents(students);
-
-        return students;
-      }
-
-      // API returned error, try cache
-      return _getCachedStudents(classId);
+      return students;
     } on DioException catch (e) {
       // Network error, return cached data
       print('Network error fetching students: ${e.message}');
@@ -72,19 +63,12 @@ class StudentRepository {
   /// Get a single student by ID
   Future<Student?> getStudent(String studentId) async {
     try {
-      final response = await _apiClient.getStudent(studentId);
-
-      if (response.statusCode == 200) {
-        final student = Student.fromJson(response.data);
-        
-        // Update cache
-        await _studentsBox.put(studentId, student.toJson());
-        
-        return student;
-      }
-
-      // Try cache
-      return _getCachedStudent(studentId);
+      final student = await _apiService.getStudent(studentId);
+      
+      // Update cache
+      await _studentsBox.put(studentId, student.toJson());
+      
+      return student;
     } catch (e) {
       print('Error fetching student $studentId: $e');
       return _getCachedStudent(studentId);
@@ -98,18 +82,12 @@ class StudentRepository {
   /// This makes the UI feel instant. If API fails, we roll back.
   Future<Student?> createStudent(Student student) async {
     try {
-      final response = await _apiClient.createStudent(student.toJson());
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final createdStudent = Student.fromJson(response.data);
-        
-        // Cache the created student
-        await _studentsBox.put(createdStudent.id, createdStudent.toJson());
-        
-        return createdStudent;
-      }
-
-      return null;
+      final createdStudent = await _apiService.createStudent(student);
+      
+      // Cache the created student
+      await _studentsBox.put(createdStudent.id, createdStudent.toJson());
+      
+      return createdStudent;
     } catch (e) {
       print('Error creating student: $e');
       return null;
@@ -119,21 +97,12 @@ class StudentRepository {
   /// Update an existing student
   Future<Student?> updateStudent(Student student) async {
     try {
-      final response = await _apiClient.updateStudent(
-        student.id,
-        student.toJson(),
-      );
-
-      if (response.statusCode == 200) {
-        final updatedStudent = Student.fromJson(response.data);
-        
-        // Update cache
-        await _studentsBox.put(updatedStudent.id, updatedStudent.toJson());
-        
-        return updatedStudent;
-      }
-
-      return null;
+      final updatedStudent = await _apiService.updateStudent(student.id, student);
+      
+      // Update cache
+      await _studentsBox.put(updatedStudent.id, updatedStudent.toJson());
+      
+      return updatedStudent;
     } catch (e) {
       print('Error updating student: $e');
       return null;
@@ -143,15 +112,11 @@ class StudentRepository {
   /// Delete a student
   Future<bool> deleteStudent(String studentId) async {
     try {
-      final response = await _apiClient.deleteStudent(studentId);
-
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        // Remove from cache
-        await _studentsBox.delete(studentId);
-        return true;
-      }
-
-      return false;
+      await _apiService.deleteStudent(studentId);
+      
+      // Remove from cache
+      await _studentsBox.delete(studentId);
+      return true;
     } catch (e) {
       print('Error deleting student: $e');
       return false;
