@@ -123,3 +123,4 @@ class AttendanceRecord extends HiveObject {
 
 
 
+

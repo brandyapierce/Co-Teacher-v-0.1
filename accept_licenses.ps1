@@ -10,3 +10,4 @@ Write-Host "Done! Licenses should be accepted." -ForegroundColor Green
 
 
 
+
