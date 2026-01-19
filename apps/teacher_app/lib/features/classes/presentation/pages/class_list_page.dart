@@ -8,6 +8,8 @@ import '../providers/class_list_cubit.dart';
 import '../providers/class_list_state.dart';
 import '../widgets/class_card.dart';
 import '../widgets/create_class_dialog.dart';
+import '../widgets/student_enrollment_dialog.dart';
+import '../widgets/enrolled_students_list.dart';
 
 /// =============================================================================
 /// CLASS LIST PAGE - Tablet-optimized class management
@@ -257,6 +259,10 @@ class _ClassListView extends StatelessWidget {
                     context.read<ClassListCubit>().toggleClassSelection(classModel.id);
                   }
                 },
+                onTakeAttendance: () {
+                  // Navigate to attendance scan with this class
+                  context.push('/attendance/scan', extra: classModel);
+                },
                 onEdit: () => _showEditDialog(context, classModel, isTablet),
                 onDelete: () => _confirmDelete(context, classModel, isTablet),
               );
@@ -380,14 +386,14 @@ class _ClassListView extends StatelessWidget {
               
               const SizedBox(height: 32),
               
-              // Actions
+              // Actions - Primary
               Row(
                 children: [
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () {
-                        // Navigate to attendance scan with this class
-                        context.push('/attendance/scan?classId=${classModel.id}');
+                        // Navigate to attendance scan with this class (passing ClassModel)
+                        context.push('/attendance/scan', extra: classModel);
                       },
                       icon: const Icon(Icons.camera_alt),
                       label: const Text('Take Attendance'),
@@ -396,21 +402,19 @@ class _ClassListView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        // View students in this class
-                        context.push('/classes/${classModel.id}/students');
-                      },
-                      icon: const Icon(Icons.people),
-                      label: const Text('View Students'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size(0, isTablet ? 56 : 48),
-                      ),
-                    ),
-                  ),
                 ],
+              ),
+
+              const SizedBox(height: 32),
+
+              // Enrolled Students Section
+              EnrolledStudentsList(
+                classModel: classModel,
+                onStudentRemoved: () {
+                  // Refresh the class list to update student counts
+                  context.read<ClassListCubit>().refresh();
+                },
+                onManageStudents: () => _showStudentEnrollment(context, classModel, isTablet),
               ),
             ],
           ),
@@ -785,5 +789,31 @@ class _ClassListView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showStudentEnrollment(BuildContext context, ClassModel classModel, bool isTablet) async {
+    final saved = await StudentEnrollmentDialog.show(
+      context,
+      classModel: classModel,
+    );
+
+    if (saved && context.mounted) {
+      // Refresh the class list to show updated student counts
+      context.read<ClassListCubit>().refresh();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Text('Student roster updated for "${classModel.name}"'),
+            ],
+          ),
+          backgroundColor: AppTheme.successColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }

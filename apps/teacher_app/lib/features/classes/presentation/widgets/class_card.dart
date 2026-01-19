@@ -16,6 +16,7 @@ class ClassCard extends StatelessWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onTakeAttendance;
 
   const ClassCard({
     super.key,
@@ -27,6 +28,7 @@ class ClassCard extends StatelessWidget {
     this.onLongPress,
     this.onEdit,
     this.onDelete,
+    this.onTakeAttendance,
   });
 
   @override
@@ -148,15 +150,43 @@ class ClassCard extends StatelessWidget {
                 ),
               ),
               
+              // Quick attendance button (when not in selection mode)
+              if (!isSelectionMode && onTakeAttendance != null) ...[
+                SizedBox(width: isTablet ? 8 : 4),
+                IconButton(
+                  onPressed: onTakeAttendance,
+                  icon: Icon(
+                    Icons.camera_alt,
+                    size: isTablet ? 24 : 20,
+                    color: colorScheme.primary,
+                  ),
+                  tooltip: 'Take Attendance',
+                  style: IconButton.styleFrom(
+                    backgroundColor: colorScheme.primaryContainer.withOpacity(0.3),
+                  ),
+                ),
+              ],
+              
               // More options menu (when not in selection mode)
               if (!isSelectionMode && (onEdit != null || onDelete != null)) ...[
-                SizedBox(width: isTablet ? 8 : 4),
+                SizedBox(width: isTablet ? 4 : 2),
                 PopupMenuButton<String>(
                   icon: Icon(
                     Icons.more_vert,
                     size: isTablet ? 24 : 20,
                   ),
                   itemBuilder: (context) => [
+                    if (onTakeAttendance != null)
+                      PopupMenuItem(
+                        value: 'attendance',
+                        child: Row(
+                          children: [
+                            Icon(Icons.camera_alt, size: isTablet ? 22 : 20, color: colorScheme.primary),
+                            SizedBox(width: isTablet ? 12 : 8),
+                            Text('Take Attendance', style: TextStyle(fontSize: isTablet ? 16 : 14)),
+                          ],
+                        ),
+                      ),
                     if (onEdit != null)
                       PopupMenuItem(
                         value: 'edit',
@@ -181,6 +211,7 @@ class ClassCard extends StatelessWidget {
                       ),
                   ],
                   onSelected: (value) {
+                    if (value == 'attendance') onTakeAttendance?.call();
                     if (value == 'edit') onEdit?.call();
                     if (value == 'delete') onDelete?.call();
                   },

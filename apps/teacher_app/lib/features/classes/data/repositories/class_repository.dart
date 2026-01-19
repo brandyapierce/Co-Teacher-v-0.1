@@ -70,12 +70,13 @@ class ClassRepository {
       await _updateCache(classes);
       return classes;
     } catch (e) {
-      // If server fails, return cache
+      // If server fails, return cache (may be empty for new users)
       final cached = _classBox.values
           .where((c) => c.teacherId == teacherId && c.isActive)
           .toList();
-      if (cached.isNotEmpty) return cached;
-      rethrow;
+      // Return cached data or empty list - don't throw
+      // This allows offline-first: users can create classes locally
+      return cached;
     }
   }
 

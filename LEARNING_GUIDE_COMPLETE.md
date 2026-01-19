@@ -3638,3 +3638,276 @@ lib/
 
 **You've built something amazing - now understand how it all works!** 🚀
 
+
+---
+
+## 🔗 Week 7: Class-Attendance Integration (Added January 19, 2026)
+
+### The Problem
+
+Before this integration, attendance and classes were separate features:
+- Users had to remember which class they were taking attendance for
+- No visual confirmation of selected class during scanning
+- Multiple navigation paths but no unified flow
+
+### The Solution: End-to-End Flow
+
+We created a seamless workflow connecting Class selection to Attendance scanning.
+
+### New Component: ClassPickerDialog
+
+`lib/shared/presentation/widgets/class_picker_dialog.dart`
+
+**Purpose**: Reusable dialog for selecting a class before taking attendance
+
+`dart
+/// Show dialog and get selected class
+class ClassPickerDialog extends StatefulWidget {
+  /// Static factory method - clean API for showing the dialog
+  static Future<ClassModel?> show(BuildContext context, {
+    required String teacherId,
+  }) async {
+    return showDialog<ClassModel>(
+      context: context,
+      builder: (context) => ClassPickerDialog(
+        teacherId: teacherId,
+        onClassSelected: (selected) => Navigator.pop(context, selected),
+      ),
+    );
+  }
+}
+`
+
+**Key Features:**
+- **Searchable list**: Filter classes by name, subject, or grade
+- **Visual indicators**: Color coding, student count badges
+- **Loading states**: Proper feedback while loading
+- **Error handling**: Retry button on failures
+- **Empty states**: Guidance for new users
+- **Quick create**: Button to add new class
+
+### Integration Pattern: Route Parameters
+
+`lib/core/router/app_router.dart`
+
+**Before** (Map only):
+`dart
+GoRoute(
+  path: '/attendance/scan',
+  builder: (context, state) {
+    final extra = state.extra as Map<String, dynamic>;
+    return AttendanceScanPage(classId: extra['classId']);
+  },
+)
+`
+
+**After** (Flexible type handling):
+`dart
+GoRoute(
+  path: '/attendance/scan',
+  builder: (context, state) {
+    final extra = state.extra;
+    
+    if (extra is ClassModel) {
+      // NEW: From class picker - full model available
+      return AttendanceScanPage(
+        teacherId: extra.teacherId,
+        classId: extra.id,
+        totalStudents: extra.studentCount,
+        className: extra.name,  // Show class name in UI
+      );
+    } else if (extra is Map<String, dynamic>) {
+      // LEGACY: Backward compatibility
+      return AttendanceScanPage(/* from map */);
+    } else {
+      // FALLBACK: Default values
+      return const AttendanceScanPage(/* defaults */);
+    }
+  },
+)
+`
+
+**Design Principle: Backward Compatibility**
+- Never break existing functionality
+- Add new capabilities alongside old ones
+- Gracefully degrade when data missing
+
+### UI Enhancement: Context Display
+
+`lib/features/attendance/presentation/pages/attendance_scan_page.dart`
+
+**Before**: AppBar showed just "Attendance Scan"
+**After**: Two-line title shows class context
+
+`dart
+AppBar(
+  title: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text('Attendance Scan'),
+      if (widget.className != null)
+        Text(
+          widget.className!,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+    ],
+  ),
+)
+`
+
+**UX Principle**: Always confirm context to the user. They should never wonder "which class am I scanning for?"
+
+### Quick Actions: Camera Button on ClassCard
+
+`lib/features/classes/presentation/widgets/class_card.dart`
+
+**New callback:**
+`dart
+class ClassCard extends StatelessWidget {
+  final VoidCallback? onTakeAttendance;
+  
+  // In build method...
+  IconButton(
+    onPressed: onTakeAttendance,
+    icon: Icon(Icons.camera_alt, color: colorScheme.primary),
+    tooltip: 'Take Attendance',
+  ),
+}
+`
+
+**Usage in list:**
+`dart
+ClassCard(
+  classModel: classModel,
+  onTakeAttendance: () {
+    context.push('/attendance/scan', extra: classModel);
+  },
+)
+`
+
+**UX Principle**: Common actions should be one tap away. Don't make users navigate through menus.
+
+### Async Service Calls in Widgets
+
+**Problem**: Getting user ID requires async call, but widget callbacks are synchronous.
+
+**Bad approach:**
+`dart
+onPressed: () {
+  // ERROR: Can't await in synchronous callback
+  final userId = await authService.getCachedUserId();
+}
+`
+
+**Good approach:**
+`dart
+void _showClassPickerAndScan(BuildContext context) async {
+  // Async method can await
+  final teacherId = await authService.getCachedUserId() ?? 'default';
+  
+  // Check if widget still mounted after await
+  if (!context.mounted) return;
+  
+  // Now show dialog
+  final selectedClass = await ClassPickerDialog.show(context, teacherId: teacherId);
+  
+  if (selectedClass != null && context.mounted) {
+    context.push('/attendance/scan', extra: selectedClass);
+  }
+}
+`
+
+**Key Points:**
+1. Make handler async, not the callback
+2. Always check `context.mounted` after awaits
+3. Provide fallback values for nulls
+
+### User Flow Diagram
+
+`
+┌─────────────────────────────────────────────────────────────┐
+│                    ATTENDANCE TAB                           │
+│                                                             │
+│  ┌─────────────────────────────────┐                       │
+│  │   [Start Attendance Scan]       │                       │
+│  └─────────────────────────────────┘                       │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 CLASS PICKER DIALOG                         │
+│  ┌─────────────────────────────────┐                       │
+│  │ 🔍 Search classes...            │                       │
+│  └─────────────────────────────────┘                       │
+│                                                             │
+│  ┌─────────────────────────────────┐                       │
+│  │ 🎨 Grade 5 Math     (25 👥)    │ ◄── Tap to select     │
+│  └─────────────────────────────────┘                       │
+│  ┌─────────────────────────────────┐                       │
+│  │ 🎨 Grade 6 Science  (22 👥)    │                       │
+│  └─────────────────────────────────┘                       │
+│                                                             │
+│  [ + Create New Class ]                                    │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│                ATTENDANCE SCAN PAGE                         │
+│  ┌─────────────────────────────────┐                       │
+│  │ ← Attendance Scan               │                       │
+│  │   Grade 5 Math                  │ ◄── Class context     │
+│  └─────────────────────────────────┘                       │
+│                                                             │
+│  ┌─────────────────────────────────┐                       │
+│  │                                 │                       │
+│  │         [Camera View]           │                       │
+│  │                                 │                       │
+│  └─────────────────────────────────┘                       │
+│                                                             │
+│  Scanned: 5/25 students                                    │
+└─────────────────────────────────────────────────────────────┘
+`
+
+### Alternative Flow: From Classes Tab
+
+`
+┌─────────────────────────────────────────────────────────────┐
+│                    CLASSES TAB                              │
+│                                                             │
+│  ┌────────────────────────────────────────────────┐        │
+│  │ 🎨 Grade 5 Math              (25 👥) [📷] [⋮] │        │
+│  └────────────────────────────────────────────────┘        │
+│                                          │                  │
+│                                          ▼                  │
+│                                    Quick Action             │
+│                                                             │
+└──────────────────────────────────────────┬──────────────────┘
+                                           │
+                                           ▼
+                              [Attendance Scan Page]
+                              Class context already set!
+`
+
+### Interview-Ready Knowledge
+
+**Q: How did you connect your Class and Attendance features?**
+
+A: I created a ClassPickerDialog as a reusable widget that fetches the teacher's classes and returns the selected ClassModel. The dialog shows searchable class cards with color coding and student counts. When a class is selected, I pass the entire ClassModel through GoRouter's extra parameter to the AttendanceScanPage, which displays the class name in the AppBar for context. I also added quick-action camera buttons on ClassCards for direct access. The router handles both the new ClassModel type and legacy Map parameters for backward compatibility.
+
+**Q: How do you handle async operations in widget callbacks?**
+
+A: Widget callbacks like onPressed are synchronous, so I create async wrapper methods. For example, my _showClassPickerAndScan method is async, allowing me to await the cached user ID before showing the dialog. After every await, I check context.mounted before using context again, since the widget might have been disposed during the async operation. I provide fallback values for nullable returns to ensure the app never crashes from unexpected nulls.
+
+**Q: Why pass the entire ClassModel instead of just the class ID?**
+
+A: Passing the full model avoids an extra network request. If I only passed the ID, the AttendanceScanPage would need to fetch class details, adding latency and complexity. With the full model, I have immediate access to the class name (for display), student count (for progress tracking), and teacher ID (for validation). This is the "don't ask for information you already have" principle.
+
+---
+
+**Updated**: January 19, 2026  
+**Status**: Week 7 integration complete

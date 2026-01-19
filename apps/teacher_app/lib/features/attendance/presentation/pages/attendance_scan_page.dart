@@ -27,12 +27,14 @@ class AttendanceScanPage extends StatelessWidget {
   final String teacherId;
   final String classId;
   final int totalStudents;
+  final String? className;
 
   const AttendanceScanPage({
     super.key,
     required this.teacherId,
     required this.classId,
     this.totalStudents = 25,
+    this.className,
   });
 
   @override
@@ -43,13 +45,15 @@ class AttendanceScanPage extends StatelessWidget {
         classId: classId,
         queueService: OfflineQueueService(),
       )..startScanSession(totalStudents: totalStudents),
-      child: const _AttendanceScanView(),
+      child: _AttendanceScanView(className: className),
     );
   }
 }
 
 class _AttendanceScanView extends StatefulWidget {
-  const _AttendanceScanView();
+  final String? className;
+  
+  const _AttendanceScanView({this.className});
 
   @override
   State<_AttendanceScanView> createState() => _AttendanceScanViewState();
@@ -106,9 +110,24 @@ class _AttendanceScanViewState extends State<_AttendanceScanView> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: isTablet ? 72 : 56,
-        title: Text(
-          'Attendance Scan',
-          style: TextStyle(fontSize: isTablet ? 24 : 20),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Attendance Scan',
+              style: TextStyle(fontSize: isTablet ? 24 : 20),
+            ),
+            if (widget.className != null)
+              Text(
+                widget.className!,
+                style: TextStyle(
+                  fontSize: isTablet ? 14 : 12,
+                  fontWeight: FontWeight.normal,
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+          ],
         ),
         actions: [
           Padding(

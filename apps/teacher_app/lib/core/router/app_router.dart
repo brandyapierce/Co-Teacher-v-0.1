@@ -10,6 +10,7 @@ import '../../features/attendance/presentation/pages/attendance_scan_page.dart';
 import '../../features/attendance/presentation/pages/attendance_list_page.dart';
 import '../../features/students/presentation/pages/student_list_page.dart';
 import '../../features/classes/presentation/pages/class_list_page.dart';
+import '../../features/classes/data/models/class_model.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 
 class AppRouter {
@@ -49,12 +50,33 @@ class AppRouter {
       GoRoute(
         path: '/attendance/scan',
         builder: (context, state) {
-          final extra = (state.extra as Map<String, dynamic>?) ?? {};
-          return AttendanceScanPage(
-            teacherId: extra['teacherId'] as String? ?? 'teacher-1',
-            classId: extra['classId'] as String? ?? 'class-001',
-            totalStudents: extra['totalStudents'] as int? ?? 25,
-          );
+          // Support both ClassModel and legacy Map parameters
+          final extra = state.extra;
+          
+          if (extra is ClassModel) {
+            // NEW: Coming from class picker dialog
+            return AttendanceScanPage(
+              teacherId: extra.teacherId,
+              classId: extra.id,
+              totalStudents: extra.studentCount,
+              className: extra.name,
+            );
+          } else if (extra is Map<String, dynamic>) {
+            // Legacy support
+            return AttendanceScanPage(
+              teacherId: extra['teacherId'] as String? ?? 'teacher-1',
+              classId: extra['classId'] as String? ?? 'class-001',
+              totalStudents: extra['totalStudents'] as int? ?? 25,
+              className: extra['className'] as String?,
+            );
+          } else {
+            // Fallback defaults
+            return const AttendanceScanPage(
+              teacherId: 'teacher-1',
+              classId: 'class-001',
+              totalStudents: 25,
+            );
+          }
         },
       ),
       // NEW ROUTE: Attendance History Page

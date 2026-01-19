@@ -4,6 +4,8 @@ import 'package:get_it/get_it.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../shared/presentation/widgets/class_picker_dialog.dart';
+import '../../../classes/data/models/class_model.dart';
 
 /// =============================================================================
 /// HOME PAGE - TABLET-OPTIMIZED DASHBOARD
@@ -351,6 +353,28 @@ class _NavDestination {
 class AttendanceTab extends StatelessWidget {
   const AttendanceTab({super.key});
 
+  void _showClassPickerAndScan(BuildContext context) async {
+    // Get current teacher ID from cached storage
+    final authService = GetIt.instance<AuthService>();
+    final teacherId = await authService.getCachedUserId() ?? 'teacher-1';
+    
+    if (!context.mounted) return;
+    
+    // Show class picker dialog
+    final selectedClass = await ClassPickerDialog.show(
+      context,
+      teacherId: teacherId,
+    );
+    
+    // If a class was selected, navigate to scan with class info
+    if (selectedClass != null && context.mounted) {
+      context.push(
+        '/attendance/scan',
+        extra: selectedClass,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -414,7 +438,7 @@ class AttendanceTab extends StatelessWidget {
               width: double.infinity,
               height: isTablet ? AppTheme.buttonHeightLarge : AppTheme.buttonHeight,
               child: FilledButton.icon(
-                onPressed: () => context.push('/attendance/scan'),
+                onPressed: () => _showClassPickerAndScan(context),
                 icon: Icon(
                   Icons.camera_alt_rounded,
                   size: isTablet ? 28 : 24,

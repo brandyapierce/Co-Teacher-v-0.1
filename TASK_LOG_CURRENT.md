@@ -1421,3 +1421,112 @@ Backend      Local DB
 
 **Session Status**: PHASE D IN PROGRESS  
 **Time Invested This Session**: ~1.5 hours
+
+---
+
+## 📝 Session Entry: January 19, 2026 - Week 7: Class-Attendance Integration
+
+### Session Context
+**Time**: Current Session  
+**Protocol**: MASTER ✅ ACTIVE  
+**Previous Session**: January 18, 2026 (Weeks 5-6 Complete, GitHub Push)
+
+#### Week 7: Class-Attendance Integration (Option B)
+**Position in Master Plan**: ~95% Overall
+
+**Objective:** Connect Class Management to Attendance flow for end-to-end experience.
+
+### Implementation Summary:
+
+#### 1. Class Picker Dialog (NEW WIDGET)
+**File:** `lib/shared/presentation/widgets/class_picker_dialog.dart`
+
+**Features:**
+- Searchable list of teacher's classes
+- Shows class color, name, subtitle, student count
+- Loading and error states
+- Quick "Create New Class" option
+- Reusable across the app
+
+**Usage Pattern:**
+`dart
+final selectedClass = await ClassPickerDialog.show(
+  context,
+  teacherId: teacherId,
+);
+`
+
+#### 2. Attendance Tab Integration
+**File:** `lib/features/home/presentation/pages/home_page.dart`
+
+**Changes:**
+- "Start Attendance Scan" now opens class picker first
+- After class selection, navigates to scan with ClassModel
+- Async handling for retrieving cached user ID
+
+#### 3. Attendance Scan Page Updates
+**File:** `lib/features/attendance/presentation/pages/attendance_scan_page.dart`
+
+**Changes:**
+- Added `className` parameter
+- AppBar shows two-line title: "Attendance Scan" + class name
+- ClassModel passed through route extra
+
+#### 4. ClassCard Quick Action
+**File:** `lib/features/classes/presentation/widgets/class_card.dart`
+
+**Changes:**
+- Added `onTakeAttendance` callback
+- Camera icon button for quick attendance access
+- "Take Attendance" in popup menu
+
+#### 5. Router Enhancements
+**File:** `lib/core/router/app_router.dart`
+
+**Changes:**
+- `/attendance/scan` route now accepts:
+  - `ClassModel` (new: from class picker)
+  - `Map<String, dynamic>` (legacy support)
+  - No extra (default fallback)
+
+### User Flow Diagram:
+
+`
+[Attendance Tab]
+     |
+     v
+[Start Attendance Scan]
+     |
+     v
+[Class Picker Dialog]
+     |
+     +-> Select Class
+     |
+     v
+[Attendance Scan Page]
+(Shows: "Attendance Scan" / "Grade 5 Math")
+`
+
+**Alternative Flow:**
+`
+[Classes Tab]
+     |
+     v
+[Class Card] --> [Camera Icon] --> [Attendance Scan]
+`
+
+### Testing Status:
+- ✅ Build successful (zero errors)
+- ✅ App running on Windows
+- ⏳ Manual testing pending
+
+### Key Learning Points:
+
+1. **Route Parameter Flexibility:** Support multiple parameter types with type checking
+2. **Async Service Calls:** Use cached data when possible to avoid async in widget callbacks
+3. **Reusable Dialogs:** Create self-contained dialog widgets with static `show()` methods
+4. **Quick Actions:** Add contextual shortcuts (camera icon) for common workflows
+
+---
+
+*Status: Week 7 Integration Complete - Testing in Progress*
