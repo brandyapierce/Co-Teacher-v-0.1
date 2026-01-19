@@ -9,6 +9,8 @@ import '../../features/enrollment/presentation/pages/face_enrollment_page.dart';
 import '../../features/attendance/presentation/pages/attendance_scan_page.dart';
 import '../../features/attendance/presentation/pages/attendance_list_page.dart';
 import '../../features/students/presentation/pages/student_list_page.dart';
+import '../../features/classes/presentation/pages/class_list_page.dart';
+import '../../features/reports/presentation/pages/reports_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -64,6 +66,30 @@ class AppRouter {
       GoRoute(
         path: '/students',
         builder: (context, state) => const StudentListPage(),
+      ),
+      // NEW ROUTES: Class Management (Week 5)
+      GoRoute(
+        path: '/classes',
+        builder: (context, state) => const ClassListPage(),
+      ),
+      GoRoute(
+        path: '/classes/:classId',
+        builder: (context, state) {
+          // For detail page on phones (tablet uses master-detail)
+          return const ClassListPage();
+        },
+      ),
+      GoRoute(
+        path: '/classes/:classId/students',
+        builder: (context, state) {
+          // View students in a specific class
+          return const StudentListPage();
+        },
+      ),
+      // NEW ROUTES: Reports & Analytics (Week 6)
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsPage(),
       ),
     ],
   );

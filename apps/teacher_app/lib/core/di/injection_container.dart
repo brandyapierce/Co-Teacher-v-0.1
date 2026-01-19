@@ -18,6 +18,9 @@ import '../../features/students/data/repositories/student_repository.dart';
 import '../../features/students/data/services/student_api_service.dart';
 import '../../features/attendance/data/repositories/attendance_repository.dart';
 import '../../features/attendance/data/services/attendance_api_service.dart';
+import '../../features/classes/data/models/class_model.dart';
+import '../../features/classes/data/repositories/class_repository.dart';
+import '../../features/reports/data/services/attendance_stats_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -36,17 +39,27 @@ Future<void> initializeDependencies() async {
   });
 
   // Hive boxes - OPEN FIRST before registering
+  // Register Hive adapters for Class models
+  if (!Hive.isAdapterRegistered(3)) {
+    Hive.registerAdapter(ClassModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(4)) {
+    Hive.registerAdapter(ClassScheduleAdapter());
+  }
+  
   final appSettingsBox = await Hive.openBox('app_settings');
   final offlineQueueBox = await Hive.openBox('offline_queue');
   final faceTemplatesBox = await Hive.openBox('face_templates');
   final attendanceRecordsBox = await Hive.openBox('attendance_records');
   final studentsBox = await Hive.openBox('students');
+  final classesBox = await Hive.openBox<ClassModel>('classes');
   
   getIt.registerLazySingleton<Box>(() => appSettingsBox, instanceName: 'app_settings');
   getIt.registerLazySingleton<Box>(() => offlineQueueBox, instanceName: 'offline_queue');
   getIt.registerLazySingleton<Box>(() => faceTemplatesBox, instanceName: 'face_templates');
   getIt.registerLazySingleton<Box>(() => attendanceRecordsBox, instanceName: 'attendance_records');
   getIt.registerLazySingleton<Box>(() => studentsBox, instanceName: 'students');
+  getIt.registerLazySingleton<Box<ClassModel>>(() => classesBox);
 
   // Network Services
   getIt.registerLazySingleton<ApiClient>(() => ApiClient());
@@ -74,5 +87,9 @@ Future<void> initializeDependencies() async {
   // Repositories
   getIt.registerLazySingleton<StudentRepository>(() => StudentRepository());
   getIt.registerLazySingleton<AttendanceRepository>(() => AttendanceRepository());
+  getIt.registerLazySingleton<ClassRepository>(() => ClassRepository());
+  
+  // Statistics Services (Week 6 - Reports)
+  getIt.registerLazySingleton<AttendanceStatsService>(() => AttendanceStatsService());
 }
 

@@ -198,14 +198,57 @@ class ApiClient {
 
   /// GET /api/v1/classes
   /// Get list of classes for the current teacher
-  Future<Response> getClasses() async {
-    return await _dio.get('/api/v1/classes');
+  Future<dynamic> getClasses({String? teacherId}) async {
+    final response = await _dio.get(
+      '/api/v1/classes',
+      queryParameters: {
+        if (teacherId != null) 'teacher_id': teacherId,
+      },
+    );
+    return response.data;
   }
 
   /// GET /api/v1/classes/{id}
   /// Get class details including student roster
-  Future<Response> getClass(String classId) async {
-    return await _dio.get('/api/v1/classes/$classId');
+  Future<dynamic> getClassById(String classId) async {
+    final response = await _dio.get('/api/v1/classes/$classId');
+    return response.data;
+  }
+
+  /// POST /api/v1/classes
+  /// Create a new class
+  Future<dynamic> createClass(Map<String, dynamic> classData) async {
+    final response = await _dio.post('/api/v1/classes', data: classData);
+    return response.data;
+  }
+
+  /// PUT /api/v1/classes/{id}
+  /// Update class information
+  Future<dynamic> updateClass(String classId, Map<String, dynamic> classData) async {
+    final response = await _dio.put('/api/v1/classes/$classId', data: classData);
+    return response.data;
+  }
+
+  /// DELETE /api/v1/classes/{id}
+  /// Delete a class
+  Future<void> deleteClass(String classId) async {
+    await _dio.delete('/api/v1/classes/$classId');
+  }
+
+  /// POST /api/v1/classes/{id}/students
+  /// Add a student to a class
+  Future<dynamic> addStudentToClass(String classId, String studentId) async {
+    final response = await _dio.post(
+      '/api/v1/classes/$classId/students',
+      data: {'student_id': studentId},
+    );
+    return response.data;
+  }
+
+  /// DELETE /api/v1/classes/{classId}/students/{studentId}
+  /// Remove a student from a class
+  Future<void> removeStudentFromClass(String classId, String studentId) async {
+    await _dio.delete('/api/v1/classes/$classId/students/$studentId');
   }
 
   // ==================== HEALTH CHECK ====================
