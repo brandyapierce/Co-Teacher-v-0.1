@@ -29,7 +29,7 @@ class _EnrollmentListPageState extends State<EnrollmentListPage> {
     
     try {
       await _cvService.initialize();
-      final students = await _cvService.getEnrolledStudents();
+      final students = await _cvService.getAllEnrolledStudents();
       
       if (mounted) {
         setState(() {

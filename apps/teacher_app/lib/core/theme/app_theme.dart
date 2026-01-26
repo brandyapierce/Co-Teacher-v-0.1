@@ -350,7 +350,7 @@ class AppTheme {
       // ------------------------------------
       // DIALOGS - Modal windows
       // ------------------------------------
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusLarge),
         ),

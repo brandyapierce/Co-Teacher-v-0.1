@@ -8,9 +8,10 @@ import '../network/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/token_storage_service.dart';
 import '../../shared/data/services/cv_service.dart';
-// TFLite version - use when TFLite is working on Windows
-// import '../../shared/data/services/cv_service_enhanced.dart';
+// Use mock service for Windows development
 import '../../shared/data/services/cv_service_mock.dart';
+// Uncomment below and comment above to use real TFLite service
+// import '../../shared/data/services/cv_service_enhanced.dart';
 import '../../shared/data/services/camera_service.dart';
 import '../../shared/data/services/location_service.dart';
 import '../../shared/data/services/offline_queue_service.dart';
@@ -78,8 +79,11 @@ Future<void> initializeDependencies() async {
       ));
 
   // Application Services
-  getIt.registerLazySingleton<CVService>(() => CVService());
-  getIt.registerLazySingleton<CVServiceMock>(() => CVServiceMock());
+  // Use mock for Windows development, switch to CVServiceEnhanced for mobile
+  getIt.registerLazySingleton<ICVService>(() => CVServiceMock());
+  // Uncomment below and comment above to use real TFLite service:
+  // getIt.registerLazySingleton<ICVService>(() => CVServiceEnhanced());
+  
   getIt.registerLazySingleton<CameraService>(() => CameraService());
   getIt.registerLazySingleton<LocationService>(() => LocationService());
   getIt.registerLazySingleton<OfflineQueueService>(() => OfflineQueueService());
