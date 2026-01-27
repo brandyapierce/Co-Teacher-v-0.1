@@ -10,7 +10,7 @@ class Student(Base):
     id = Column(String, primary_key=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    class_id = Column(String, nullable=False)
+    class_id = Column(String, ForeignKey("classes.id"), nullable=False)
     grade_level = Column(String)
     parent_email = Column(String)
     enrollment_date = Column(DateTime, default=datetime.utcnow)
@@ -19,6 +19,7 @@ class Student(Base):
     # Relationships
     attendance_records = relationship("AttendanceRecord", back_populates="student")
     face_templates = relationship("FaceTemplate", back_populates="student")
+    class_obj = relationship("Class", back_populates="students", foreign_keys=[class_id])
 
 class AttendanceRecord(Base):
     __tablename__ = "attendance_records"

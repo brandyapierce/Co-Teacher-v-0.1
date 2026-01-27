@@ -279,20 +279,20 @@ class _ManualAttendanceEntryState extends State<ManualAttendanceEntry> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: widget.onCancel,
-                      child: const Text('Cancel'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
+                      child: const Text('Cancel'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _selectedStudent != null ? _submit : null,
-                      child: const Text('Submit'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
+                      child: const Text('Submit'),
                     ),
                   ),
                 ],

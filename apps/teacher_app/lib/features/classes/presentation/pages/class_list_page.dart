@@ -189,7 +189,7 @@ class _ClassListView extends StatelessWidget {
           child: _buildClassList(context, isTablet),
         ),
         // Divider
-        VerticalDivider(width: 1),
+        const VerticalDivider(width: 1),
         // Detail view (right side)
         Expanded(
           flex: 6,

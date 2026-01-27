@@ -115,7 +115,7 @@ class _ClassPickerDialogState extends State<ClassPickerDialog> {
               padding: EdgeInsets.all(isTablet ? 24 : 20),
               decoration: BoxDecoration(
                 color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppTheme.radiusLarge),
                 ),
               ),

@@ -8,8 +8,13 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.api.v1 import auth, attendance, rotations, evidence, insights, messaging, consent_audit, enrollment
+from app.api.v1 import auth, attendance, rotations, evidence, insights, messaging, consent_audit, enrollment, classes
 from app.core.websocket import ConnectionManager
+# Import all models to register them with SQLAlchemy Base
+from app.models import (
+    Student, AttendanceRecord, FaceTemplate, Rotation, RotationStudent,
+    EvidenceMedia, Teacher, ConsentAudit, Class
+)
 
 load_dotenv()
 
@@ -44,6 +49,7 @@ manager = ConnectionManager()
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["attendance"])
 app.include_router(enrollment.router, prefix="/api/v1/enrollment", tags=["enrollment"])
+app.include_router(classes.router, prefix="/api/v1/classes", tags=["classes"])
 app.include_router(rotations.router, prefix="/api/v1/rotations", tags=["rotations"])
 app.include_router(evidence.router, prefix="/api/v1/evidence", tags=["evidence"])
 app.include_router(insights.router, prefix="/api/v1/insights", tags=["insights"])

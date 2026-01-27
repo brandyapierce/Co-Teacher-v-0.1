@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../data/models/attendance_stats.dart';
 import '../../data/services/attendance_stats_service.dart';

@@ -574,7 +574,7 @@ class _AttendanceListView extends StatelessWidget {
             ),
             SizedBox(height: isTablet ? 12 : 8),
             DropdownButtonFormField<String>(
-              value: selectedStatus,
+              initialValue: selectedStatus,
               style: TextStyle(fontSize: isTablet ? 18 : 16, color: theme.colorScheme.onSurface),
               items: const [
                 DropdownMenuItem(value: 'present', child: Text('Present')),

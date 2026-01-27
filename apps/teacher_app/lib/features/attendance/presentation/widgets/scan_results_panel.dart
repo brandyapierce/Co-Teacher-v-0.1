@@ -153,9 +153,9 @@ class ScanResultsPanel extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: Colors.green,
-          child: const Icon(Icons.check, color: Colors.white, size: 20),
+          child: Icon(Icons.check, color: Colors.white, size: 20),
         ),
         title: Text(
           name,
@@ -182,9 +182,9 @@ class ScanResultsPanel extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       color: Colors.orange[50],
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: Colors.orange,
-          child: const Icon(Icons.help_outline, color: Colors.white, size: 20),
+          child: Icon(Icons.help_outline, color: Colors.white, size: 20),
         ),
         title: Text(
           name,

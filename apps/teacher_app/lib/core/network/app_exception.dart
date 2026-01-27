@@ -49,22 +49,21 @@ class AppException implements Exception {
 
 /// Exception thrown when authentication fails
 class AuthException extends AppException {
-  AuthException(String message) : super(message);
+  AuthException(super.message);
 }
 
 /// Exception thrown when a network request fails
 class NetworkException extends AppException {
-  NetworkException(String message, {int? statusCode}) 
-      : super(message, statusCode: statusCode);
+  NetworkException(super.message, {super.statusCode});
 }
 
 /// Exception thrown when data validation fails
 class ValidationException extends AppException {
-  ValidationException(String message) : super(message);
+  ValidationException(super.message);
 }
 
 /// Exception thrown when a resource is not found
 class NotFoundException extends AppException {
-  NotFoundException(String message) : super(message, statusCode: 404);
+  NotFoundException(super.message) : super(statusCode: 404);
 }
 

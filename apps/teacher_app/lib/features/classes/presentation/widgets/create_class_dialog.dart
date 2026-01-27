@@ -101,7 +101,7 @@ class _CreateClassDialogState extends State<CreateClassDialog> {
                     _getColor(_selectedColor).withOpacity(0.7),
                   ],
                 ),
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppTheme.radiusLarge),
                 ),
               ),

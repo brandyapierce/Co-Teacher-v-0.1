@@ -100,7 +100,7 @@ class ImagePreprocessing {
     }
     
     // Crop to face region with some padding
-    final padding = 20;
+    const padding = 20;
     final paddedRect = Rect.fromLTRB(
       (faceRect.left - padding).clamp(0, image.width.toDouble()),
       (faceRect.top - padding).clamp(0, image.height.toDouble()),

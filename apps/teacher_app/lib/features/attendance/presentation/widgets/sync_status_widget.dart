@@ -189,7 +189,7 @@ class SyncStatusPanel extends StatelessWidget {
                       if (pendingCount > 0) ...[
                         Row(
                           children: [
-                            Icon(Icons.pending_actions, size: 20, color: Colors.orange),
+                            const Icon(Icons.pending_actions, size: 20, color: Colors.orange),
                             const SizedBox(width: 8),
                             Text(
                               '$pendingCount item${pendingCount > 1 ? 's' : ''} waiting to sync',

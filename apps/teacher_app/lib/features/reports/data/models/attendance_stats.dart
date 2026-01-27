@@ -14,6 +14,7 @@
 /// These are immutable data containers that hold computed results.
 /// They don't have behavior, just data.
 /// =============================================================================
+library;
 
 /// Time period for reports
 enum ReportPeriod {

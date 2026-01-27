@@ -201,7 +201,7 @@ class _StudentEnrollmentDialogState extends State<StudentEnrollmentDialog> {
         gradient: LinearGradient(
           colors: [classColor, classColor.withOpacity(0.8)],
         ),
-        borderRadius: BorderRadius.vertical(
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppTheme.radiusLarge),
         ),
       ),

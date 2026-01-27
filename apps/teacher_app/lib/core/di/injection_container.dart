@@ -20,6 +20,7 @@ import '../../features/students/data/services/student_api_service.dart';
 import '../../features/attendance/data/repositories/attendance_repository.dart';
 import '../../features/attendance/data/services/attendance_api_service.dart';
 import '../../features/classes/data/models/class_model.dart';
+import '../../features/classes/data/services/class_api_service.dart';
 import '../../features/classes/data/repositories/class_repository.dart';
 import '../../features/reports/data/services/attendance_stats_service.dart';
 
@@ -75,6 +76,9 @@ Future<void> initializeDependencies() async {
         getIt<ApiClient>(),
       ));
   getIt.registerLazySingleton<AttendanceApiService>(() => AttendanceApiService(
+        getIt<ApiClient>(),
+      ));
+  getIt.registerLazySingleton<ClassApiService>(() => ClassApiService(
         getIt<ApiClient>(),
       ));
 

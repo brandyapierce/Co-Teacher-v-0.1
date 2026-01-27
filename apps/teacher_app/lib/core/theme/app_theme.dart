@@ -364,8 +364,8 @@ class AppTheme {
       // ------------------------------------
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
-        selectedIconTheme: IconThemeData(size: iconSizeMedium),
-        unselectedIconTheme: IconThemeData(size: iconSizeMedium),
+        selectedIconTheme: const IconThemeData(size: iconSizeMedium),
+        unselectedIconTheme: const IconThemeData(size: iconSizeMedium),
         selectedLabelStyle: _textTheme.labelMedium,
         unselectedLabelStyle: _textTheme.labelMedium,
       ),
@@ -377,8 +377,8 @@ class AppTheme {
         minWidth: 80,
         minExtendedWidth: 256,
         labelType: NavigationRailLabelType.all,
-        selectedIconTheme: IconThemeData(size: iconSizeMedium),
-        unselectedIconTheme: IconThemeData(size: iconSizeMedium),
+        selectedIconTheme: const IconThemeData(size: iconSizeMedium),
+        unselectedIconTheme: const IconThemeData(size: iconSizeMedium),
         selectedLabelTextStyle: _textTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),

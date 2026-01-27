@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:get_it/get_it.dart';
 import 'package:uuid/uuid.dart';
 import '../models/class_model.dart';
-import '../../../../core/network/api_client.dart';
+import '../services/class_api_service.dart';
 
 /// =============================================================================
 /// CLASS REPOSITORY - Data access layer for classes
@@ -25,13 +25,13 @@ import '../../../../core/network/api_client.dart';
 
 class ClassRepository {
   final Box<ClassModel> _classBox;
-  final ApiClient _apiClient;
+  final ClassApiService _apiService;
 
   ClassRepository({
     Box<ClassModel>? classBox,
-    ApiClient? apiClient,
+    ClassApiService? apiService,
   })  : _classBox = classBox ?? GetIt.instance<Box<ClassModel>>(),
-        _apiClient = apiClient ?? GetIt.instance<ApiClient>();
+        _apiService = apiService ?? GetIt.instance<ClassApiService>();
 
   // ==========================================================================
   // READ OPERATIONS
@@ -61,10 +61,7 @@ class ClassRepository {
 
     // Fetch from server
     try {
-      final response = await _apiClient.getClasses(teacherId: teacherId);
-      final classes = (response as List)
-          .map((json) => ClassModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final classes = await _apiService.getClasses(teacherId: teacherId);
 
       // Update cache
       await _updateCache(classes);
@@ -89,8 +86,7 @@ class ClassRepository {
 
     // Fetch from server
     try {
-      final response = await _apiClient.getClassById(classId);
-      final classModel = ClassModel.fromJson(response as Map<String, dynamic>);
+      final classModel = await _apiService.getClass(classId);
       
       // Update cache
       await _classBox.put(classId, classModel);
@@ -143,7 +139,7 @@ class ClassRepository {
 
     // Sync to server
     try {
-      await _apiClient.createClass(newClass.toJson());
+      await _apiService.createClass(newClass);
     } catch (e) {
       // Server sync failed, but local save succeeded
       // Could implement retry queue here
@@ -162,7 +158,7 @@ class ClassRepository {
 
     // Sync to server
     try {
-      await _apiClient.updateClass(classModel.id, updated.toJson());
+      await _apiService.updateClass(classModel.id, updated);
     } catch (e) {
       print('Class update sync failed: $e');
     }
@@ -179,7 +175,7 @@ class ClassRepository {
 
       // Sync to server
       try {
-        await _apiClient.deleteClass(classId);
+        await _apiService.deleteClass(classId);
       } catch (e) {
         print('Class delete sync failed: $e');
       }
@@ -207,7 +203,7 @@ class ClassRepository {
 
     // Sync to server
     try {
-      await _apiClient.addStudentToClass(classId, studentId);
+      await _apiService.enrollStudent(classId, studentId);
     } catch (e) {
       print('Add student sync failed: $e');
     }
@@ -228,7 +224,7 @@ class ClassRepository {
 
     // Sync to server
     try {
-      await _apiClient.removeStudentFromClass(classId, studentId);
+      await _apiService.removeStudent(classId, studentId);
     } catch (e) {
       print('Remove student sync failed: $e');
     }
@@ -256,7 +252,7 @@ class ClassRepository {
     // Sync to server (batch operation)
     try {
       for (final studentId in newStudentIds) {
-        await _apiClient.addStudentToClass(classId, studentId);
+        await _apiService.enrollStudent(classId, studentId);
       }
     } catch (e) {
       print('Batch add students sync failed: $e');
@@ -272,10 +268,7 @@ class ClassRepository {
   /// Refresh data from server in background
   Future<void> _refreshFromServer(String teacherId) async {
     try {
-      final response = await _apiClient.getClasses(teacherId: teacherId);
-      final classes = (response as List)
-          .map((json) => ClassModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final classes = await _apiService.getClasses(teacherId: teacherId);
       await _updateCache(classes);
     } catch (e) {
       // Silent failure - cache remains unchanged

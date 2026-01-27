@@ -316,7 +316,7 @@ class AttendanceCard extends StatelessWidget {
     }
     
     // Older
-    return DateFormat('MMM d').format(timestamp) + ' at ' + DateFormat('h:mm a').format(timestamp);
+    return '${DateFormat('MMM d').format(timestamp)} at ${DateFormat('h:mm a').format(timestamp)}';
   }
 }
 

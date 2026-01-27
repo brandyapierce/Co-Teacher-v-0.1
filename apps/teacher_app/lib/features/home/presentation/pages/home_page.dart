@@ -865,11 +865,11 @@ class RotationsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ComingSoonPlaceholder(
+    return const _ComingSoonPlaceholder(
       icon: Icons.rotate_right_rounded,
       title: 'Station Rotations',
       subtitle: 'Manage student rotations between learning stations',
-      featureList: const [
+      featureList: [
         'Create rotation schedules',
         'Track student movements',
         'Timer and alerts',
@@ -888,11 +888,11 @@ class EvidenceTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ComingSoonPlaceholder(
+    return const _ComingSoonPlaceholder(
       icon: Icons.camera_alt_rounded,
       title: 'Evidence Collection',
       subtitle: 'Capture and organize student work evidence',
-      featureList: const [
+      featureList: [
         'Photo documentation',
         'Work samples',
         'Progress tracking',

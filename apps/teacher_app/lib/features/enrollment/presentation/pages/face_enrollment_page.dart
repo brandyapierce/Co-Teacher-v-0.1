@@ -10,10 +10,10 @@ class FaceEnrollmentPage extends StatefulWidget {
   final String studentName;
 
   const FaceEnrollmentPage({
-    Key? key,
+    super.key,
     required this.studentId,
     required this.studentName,
-  }) : super(key: key);
+  });
 
   @override
   State<FaceEnrollmentPage> createState() => _FaceEnrollmentPageState();
@@ -25,8 +25,8 @@ class _FaceEnrollmentPageState extends State<FaceEnrollmentPage> {
   
   bool _isCameraInitialized = false;
   int _currentPoseIndex = 0;
-  int _totalPoses = 3;  // Simplified to 3 poses
-  List<Uint8List> _capturedImages = [];
+  final int _totalPoses = 3;  // Simplified to 3 poses
+  final List<Uint8List> _capturedImages = [];
   bool _isProcessing = false;
   bool _enrollmentComplete = false;
   String? _error;
@@ -177,7 +177,7 @@ class _FaceEnrollmentPageState extends State<FaceEnrollmentPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle, size: 80, color: Colors.green),
+              const Icon(Icons.check_circle, size: 80, color: Colors.green),
               const SizedBox(height: 20),
               const Text('Enrollment Successful!'),
               const SizedBox(height: 20),
@@ -198,7 +198,7 @@ class _FaceEnrollmentPageState extends State<FaceEnrollmentPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error, size: 80, color: Colors.red),
+              const Icon(Icons.error, size: 80, color: Colors.red),
               const SizedBox(height: 20),
               Text(_error ?? 'Unknown error'),
               const SizedBox(height: 20),

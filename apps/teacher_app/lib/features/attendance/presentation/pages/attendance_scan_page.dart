@@ -138,11 +138,11 @@ class _AttendanceScanViewState extends State<_AttendanceScanView> {
                 context.read<AttendanceScanCubit>().queueService.manualSync();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Row(
+                    content: const Row(
                       children: [
-                        const Icon(Icons.sync, color: Colors.white),
-                        const SizedBox(width: 12),
-                        const Text('Syncing attendance records...'),
+                        Icon(Icons.sync, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text('Syncing attendance records...'),
                       ],
                     ),
                     behavior: SnackBarBehavior.floating,

@@ -213,7 +213,7 @@ class _FaceBoxPainter extends CustomPainter {
   }
   
   void _drawCornerBrackets(Canvas canvas, Rect rect, Paint paint) {
-    final bracketLength = 20.0;
+    const bracketLength = 20.0;
     
     // Top-left
     canvas.drawLine(rect.topLeft, rect.topLeft + Offset(bracketLength, 0), paint);
