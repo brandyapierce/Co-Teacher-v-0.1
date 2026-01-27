@@ -21,6 +21,7 @@ from typing import Optional
 
 from app.core.database import get_db
 from app.services.analytics_service import AnalyticsService
+from app.services.export_service import ExportService
 from app.schemas.reports import (
     AttendanceStatsResponse,
     StudentAttendanceSummaryResponse,
@@ -349,17 +350,25 @@ async def export_to_csv(
     Export attendance report to CSV format.
     
     **Returns:**
-    - CSV file download
+    - `csv_content`: CSV data ready for download
+    - `filename`: Suggested filename for download
     """
     start, end = get_date_range(start_date, end_date)
     
-    service = AnalyticsService(db)
-    summaries = service.get_student_summaries(start, end, class_id)
+    analytics = AnalyticsService(db)
+    export = ExportService(analytics)
     
-    # This will be expanded in Phase 4
+    csv_content = export.generate_csv(start, end, class_id)
+    
+    # Generate filename
+    period = (end - start).days
+    filename = f"attendance_report_{period}days_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    
     return {
-        "message": "CSV export endpoint - will be implemented in Phase 4",
-        "students": len(summaries["summaries"]),
+        "filename": filename,
+        "csv_content": csv_content,
+        "status": "ready",
+        "generated_at": datetime.utcnow().isoformat(),
     }
 
 
@@ -378,11 +387,26 @@ async def export_to_pdf(
     Export attendance report to PDF format.
     
     **Returns:**
-    - PDF file download
+    - `json_data`: Data formatted for PDF generation
+    - `filename`: Suggested filename for download
+    
+    **Note**: PDF generation can be done client-side or via external service
     """
     start, end = get_date_range(start_date, end_date)
     
-    # This will be expanded in Phase 4
+    analytics = AnalyticsService(db)
+    export = ExportService(analytics)
+    
+    json_data = export.generate_json_data(start, end, class_id)
+    summary = export.get_export_summary(start, end, class_id)
+    
+    period = (end - start).days
+    filename = f"attendance_report_{period}days_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+    
     return {
-        "message": "PDF export endpoint - will be implemented in Phase 4",
+        "filename": filename,
+        "data": json_data,
+        "summary": summary,
+        "status": "ready_for_pdf_generation",
+        "generated_at": datetime.utcnow().isoformat(),
     }
