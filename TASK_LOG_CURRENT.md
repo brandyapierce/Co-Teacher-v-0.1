@@ -1822,3 +1822,144 @@ UI (ClassListPage)
 **Session Date**: January 27, 2026  
 **Position**: Week 5 (87% → 90%+) - Ready for Commit
 
+---
+
+# 🎯 WEEK 6: REPORTS & ANALYTICS - NEW SESSION
+
+**Session Start**: January 27, 2026 (Current)  
+**Master Protocol**: ✅ FULLY ENGAGED - EVERY LINE  
+**Priority**: HIGH  
+**Sub-Protocol**: ANALYTICS-REPORTING-001  
+**Objective**: Build comprehensive reporting and analytics system
+
+---
+
+## 🎯 Week 6 Objectives (Reports & Analytics)
+
+### Scope
+- Attendance reports (daily, weekly, monthly)
+- Teacher insights and analytics
+- Student performance metrics
+- Class statistics
+- Export to PDF/CSV
+- Visual charts and dashboards
+- Trend analysis
+
+### Success Criteria
+- Backend APIs for all report types implemented
+- Flutter UI for reports and dashboard complete
+- Data visualization working
+- Export functionality tested
+- Analytics calculations verified
+- Real-time dashboard updates
+
+---
+
+## 📋 Week 6 Phases Breakdown
+
+### Phase 1: Backend Analytics & Reporting APIs (2-3 hours)
+**Sub-Protocol**: BACKEND-ANALYTICS-001
+
+**Tasks**:
+1. Create/update `AttendanceStatsService` with analytics
+2. Add attendance report endpoints (daily, weekly, monthly)
+3. Add student performance metrics
+4. Add class statistics endpoints
+5. Implement trend calculations
+6. Add export endpoints (PDF, CSV)
+
+**Files to Create/Modify**:
+- `services/gateway_bff/app/services/analytics_service.py` (NEW)
+- `services/gateway_bff/app/routers/reports.py` (NEW)
+- `services/gateway_bff/app/schemas/reports.py` (NEW)
+- `services/gateway_bff/app/models/report_model.py` (NEW - optional)
+
+### Phase 2: Flutter Analytics Services (1.5-2 hours)
+**Sub-Protocol**: MOBILE-ANALYTICS-SYNC-001
+
+**Tasks**:
+1. Create `ReportsApiService` for backend communication
+2. Create `AnalyticsService` for calculations
+3. Update `ApiClient` with report endpoints
+4. Implement caching strategy for reports
+5. Add error handling
+
+**Files to Create/Modify**:
+- `lib/features/reports/data/services/reports_api_service.dart` (NEW)
+- `lib/features/reports/data/services/analytics_service.dart` (NEW)
+- `lib/features/reports/data/repositories/reports_repository.dart` (UPDATE)
+- `lib/core/network/api_client.dart` (UPDATE)
+- `lib/core/di/injection_container.dart` (UPDATE)
+
+### Phase 3: Flutter Reports UI Pages (2-3 hours)
+**Sub-Protocol**: REPORTS-UI-IMPLEMENTATION-001
+
+**Tasks**:
+1. Create Attendance Reports Page with:
+   - Date range filters
+   - Class selection
+   - Summary statistics
+   - Details table
+2. Create Analytics Dashboard Page with:
+   - Key metrics cards
+   - Trend charts
+   - Class performance
+3. Create Student Performance Page
+4. Create Export functionality
+
+**Files to Create**:
+- `lib/features/reports/presentation/pages/attendance_report_page.dart`
+- `lib/features/reports/presentation/pages/analytics_dashboard_page.dart`
+- `lib/features/reports/presentation/pages/student_performance_page.dart`
+- `lib/features/reports/presentation/widgets/report_card.dart`
+- `lib/features/reports/presentation/widgets/chart_widget.dart`
+- `lib/features/reports/presentation/widgets/export_dialog.dart`
+
+### Phase 4: Dashboard & Visualization (1.5-2 hours)
+**Sub-Protocol**: VISUALIZATION-IMPLEMENTATION-001
+
+**Tasks**:
+1. Integrate charts library (fl_chart or similar)
+2. Create pie charts (attendance distribution)
+3. Create bar charts (attendance trends)
+4. Create line charts (performance over time)
+5. Create summary cards with key metrics
+6. Implement date range picker
+
+**Libraries**:
+- fl_chart (for charts)
+- intl (for date formatting)
+- share_plus (for exports)
+
+### Phase 5: Testing & Export Features (1.5 hours)
+**Sub-Protocol**: REPORTS-TESTING-001
+
+**Tasks**:
+1. Test all report generation
+2. Verify calculations accuracy
+3. Test export to PDF
+4. Test export to CSV
+5. Test chart rendering
+6. Performance testing with large datasets
+
+---
+
+## Master Protocol Compliance Checklist
+
+- [ ] Verify current system state
+- [ ] Identify all sub-protocols
+- [ ] Execute Phase 1 (Backend APIs)
+- [ ] Execute Phase 2 (API Services)
+- [ ] Execute Phase 3 (UI Pages)
+- [ ] Execute Phase 4 (Visualization)
+- [ ] Execute Phase 5 (Testing & Export)
+- [ ] Log all progress in this file
+- [ ] Update MASTER_PROTOCOL_SESSION.md
+- [ ] Commit to GitHub with proper messages
+
+---
+
+**Master Protocol Status**: ✅ **FULLY ENGAGED - WEEK 6 INITIATING**  
+**Session Date**: January 27, 2026  
+**Position**: Week 6 Reports & Analytics - STARTING
+

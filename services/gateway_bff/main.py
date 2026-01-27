@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.api.v1 import auth, attendance, rotations, evidence, insights, messaging, consent_audit, enrollment, classes
+from app.api.v1 import auth, attendance, rotations, evidence, insights, messaging, consent_audit, enrollment, classes, reports
 from app.core.websocket import ConnectionManager
 # Import all models to register them with SQLAlchemy Base
 from app.models import (
@@ -55,6 +55,7 @@ app.include_router(evidence.router, prefix="/api/v1/evidence", tags=["evidence"]
 app.include_router(insights.router, prefix="/api/v1/insights", tags=["insights"])
 app.include_router(messaging.router, prefix="/api/v1/messaging", tags=["messaging"])
 app.include_router(consent_audit.router, prefix="/api/v1/consent", tags=["consent"])
+app.include_router(reports.router, tags=["reports"])
 
 @app.get("/")
 async def root():
