@@ -37,7 +37,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/attendance/stats',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -61,7 +61,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/student-summaries',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -89,7 +89,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/daily-trends',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -116,7 +116,7 @@ class ReportsApiService {
     required DateRange dateRange,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/class-comparisons',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -147,7 +147,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/patterns',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -168,7 +168,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/performance',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -193,7 +193,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/comprehensive',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -218,7 +218,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/export/csv',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -227,7 +227,7 @@ class ReportsApiService {
         },
       );
 
-      return response.data['download_url'] as String? ?? '';
+      return response.data['csv_content'] as String? ?? '';
     } catch (e) {
       rethrow;
     }
@@ -239,7 +239,7 @@ class ReportsApiService {
     String? classId,
   }) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _apiClient.dio.get(
         '/api/v1/reports/export/pdf',
         queryParameters: {
           'start_date': dateRange.start.toIso8601String(),
@@ -248,7 +248,7 @@ class ReportsApiService {
         },
       );
 
-      return response.data['download_url'] as String? ?? '';
+      return response.data['data'] as String? ?? '';
     } catch (e) {
       rethrow;
     }

@@ -83,7 +83,7 @@ Future<void> initializeDependencies() async {
         getIt<ApiClient>(),
       ));
   getIt.registerLazySingleton<ReportsApiService>(() => ReportsApiService(
-        getIt<ApiClient>(),
+        apiClient: getIt<ApiClient>(),
       ));
 
   // Application Services
