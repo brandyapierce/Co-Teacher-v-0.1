@@ -23,6 +23,7 @@ import '../../features/classes/data/models/class_model.dart';
 import '../../features/classes/data/services/class_api_service.dart';
 import '../../features/classes/data/repositories/class_repository.dart';
 import '../../features/reports/data/services/attendance_stats_service.dart';
+import '../../features/reports/data/services/reports_api_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -81,6 +82,9 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton<ClassApiService>(() => ClassApiService(
         getIt<ApiClient>(),
       ));
+  getIt.registerLazySingleton<ReportsApiService>(() => ReportsApiService(
+        getIt<ApiClient>(),
+      ));
 
   // Application Services
   // Use mock for Windows development, switch to CVServiceEnhanced for mobile
@@ -98,6 +102,10 @@ Future<void> initializeDependencies() async {
   getIt.registerLazySingleton<ClassRepository>(() => ClassRepository());
   
   // Statistics Services (Week 6 - Reports)
-  getIt.registerLazySingleton<AttendanceStatsService>(() => AttendanceStatsService());
+  getIt.registerLazySingleton<AttendanceStatsService>(
+    () => AttendanceStatsService(
+      reportsApiService: getIt<ReportsApiService>(),
+    ),
+  );
 }
 

@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import '../models/attendance_stats.dart';
 import '../../../../core/network/api_client.dart';
+import 'reports_api_service.dart';
 
 /// =============================================================================
 /// ATTENDANCE STATISTICS SERVICE
@@ -24,12 +25,15 @@ import '../../../../core/network/api_client.dart';
 
 class AttendanceStatsService {
   final ApiClient _apiClient;
+  final ReportsApiService _reportsApiService;
   final Box _attendanceBox;
 
   AttendanceStatsService({
     ApiClient? apiClient,
+    ReportsApiService? reportsApiService,
     Box? attendanceBox,
   })  : _apiClient = apiClient ?? GetIt.instance<ApiClient>(),
+        _reportsApiService = reportsApiService ?? GetIt.instance<ReportsApiService>(),
         _attendanceBox = attendanceBox ?? 
             GetIt.instance<Box>(instanceName: 'attendance_records');
 
@@ -56,17 +60,9 @@ class AttendanceStatsService {
 
     // Fetch from API if local is empty
     try {
-      final response = await _apiClient.dio.get(
-        '/api/v1/attendance/stats',
-        queryParameters: {
-          'start_date': dateRange.start.toIso8601String(),
-          'end_date': dateRange.end.toIso8601String(),
-          if (classId != null) 'class_id': classId,
-        },
-      );
-      return AttendanceStats.fromJson(
-        response.data as Map<String, dynamic>,
-        dateRange,
+      return await _reportsApiService.getAttendanceStats(
+        dateRange: dateRange,
+        classId: classId,
       );
     } catch (e) {
       // Return local stats on API failure
